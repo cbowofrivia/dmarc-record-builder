@@ -10,28 +10,24 @@ use Webmozart\Assert\Assert;
  *
  * @link https://mxtoolbox.com/dmarc/details/dmarc-tags
  */
-class DmarcRecordBuilder
+class DmarcRecord
 {
     public function __construct(
         public string  $version = 'DMARC1',
-        public ?string $policy = 'none', // none, quarantine, reject
-        public ?string $subdomain_policy = null, // none, quarantine, reject
-        public ?int    $pct = null, // 1 - 100
-        public ?string $rua = null, // mailto:
-        public ?string $ruf = null, // mailto:
-        public ?string $adkim = null, // strict / relaxed
-        public ?string $aspf = null, // strict / relaxed
-        public ?string $reporting = null, // 0, 1, d, s https://mxtoolbox.com/dmarc/details/dmarc-tags/dmarc-failure-reporting-options
-        public ?string $interval = null // Seconds
+        public ?string $policy = 'none',
+        public ?string $subdomain_policy = null,
+        public ?int    $pct = null,
+        public ?string $rua = null,
+        public ?string $ruf = null,
+        public ?string $adkim = null,
+        public ?string $aspf = null,
+        public ?string $reporting = null,
+        public ?string $interval = null
     )
     {
     }
 
     /**
-     * @param string $version
-     *
-     * @return $this
-     *
      * @link https://mxtoolbox.com/dmarc/details/dmarc-tags/dmarc-version
      */
     public function version(string|null $version): static
@@ -130,10 +126,10 @@ class DmarcRecordBuilder
         return $this;
     }
 
-    public function reporting(string $value): static
+    public function reporting(string|null $value): static
     {
         Assert::inArray($value, [
-            'all', 'any', 'dkim', 'spf'
+            'all', 'any', 'dkim', 'spf', null
         ]);
 
         $this->reporting = $value;
@@ -146,5 +142,47 @@ class DmarcRecordBuilder
         $this->interval = $interval;
 
         return $this;
+    }
+
+    public function __toString(): string
+    {
+        $record = $this->version ? "v=$this->version; " : '';
+        $record .= $this->policy ? "p=$this->policy; " : '';
+        $record .= $this->subdomain_policy ? "sp=$this->subdomain_policy; " : '';
+        $record .= $this->pct ? "pct=$this->pct; " : '';
+        $record .= $this->rua ? "rua=$this->rua; " : '';
+        $record .= $this->ruf ? "ruf=$this->ruf; " : '';
+        $record .= $this->adkim ? "adkim={$this->getRealAdkimValue()}; " : '';
+        $record .= $this->aspf ? "aspf={$this->getRealAspfValue()}; " : '';
+        $record .= $this->reporting ? "ro={$this->getRealReportingOption()}; " : '';
+        $record .= $this->interval ? "ri=$this->interval; " : '';
+
+        return trim($record);
+    }
+
+    private function getRealAdkimValue(): string
+    {
+        return match ($this->adkim) {
+            'relaxed' => 'r',
+            'strict' => 's',
+        };
+    }
+
+    private function getRealAspfValue(): string
+    {
+        return match ($this->aspf) {
+            'relaxed' => 'r',
+            'strict' => 's',
+        };
+    }
+
+    private function getRealReportingOption(): string
+    {
+        return match ($this->reporting) {
+            'all' => '0',
+            'any' => '1',
+            'dkim' => 'd',
+            'spf' => 's',
+        };
     }
 }
