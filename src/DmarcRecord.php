@@ -23,8 +23,7 @@ class DmarcRecord
         public ?string $aspf = null,
         public ?string $reporting = null,
         public ?string $interval = null
-    )
-    {
+    ) {
     }
 
     /**
@@ -40,7 +39,7 @@ class DmarcRecord
     public function policy(string|null $policy): static
     {
         Assert::inArray($policy, [
-            'none', 'quarantine', 'reject', null
+            'none', 'quarantine', 'reject', null,
         ]);
 
         $this->policy = $policy;
@@ -51,7 +50,7 @@ class DmarcRecord
     public function subdomainPolicy(string|null $policy): static
     {
         Assert::inArray($policy, [
-            'none', 'quarantine', 'reject', null
+            'none', 'quarantine', 'reject', null,
         ]);
 
         $this->subdomain_policy = $policy;
@@ -107,7 +106,7 @@ class DmarcRecord
     public function adkim(string|null $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null
+            'relaxed', 'string', null,
         ]);
 
         $this->adkim = $value;
@@ -118,7 +117,7 @@ class DmarcRecord
     public function aspf(string|null $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null
+            'relaxed', 'string', null,
         ]);
 
         $this->aspf = $value;
@@ -129,7 +128,7 @@ class DmarcRecord
     public function reporting(string|null $value): static
     {
         Assert::inArray($value, [
-            'all', 'any', 'dkim', 'spf', null
+            'all', 'any', 'dkim', 'spf', null,
         ]);
 
         $this->reporting = $value;
