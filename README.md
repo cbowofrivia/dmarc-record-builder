@@ -15,7 +15,20 @@ composer require cbowofrivia/dmarc-record-builder
 ## Usage
 
 ```php
-// Todo
+$record = new DmarcRecord();
+
+$record->policy('none')
+    ->subdomainPolicy('none')
+    ->pct(100)
+    ->rua('mailto:charlesrbowen93@gmail.com')
+    ->ruf('mailto:charlesrbowen93@gmail.com')
+    ->adkim('relaxed')
+    ->aspf('relaxed')
+    ->reporting('any')
+    ->interval(604800);
+
+$record = (string) $record;
+// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:charlesrbowen93@gmail.com; ruf=mailto:charlesrbowen93@gmail.com; fo=1; adkim=r; aspf=r; ri=604800;
 ```
 
 ## Testing
@@ -27,14 +40,6 @@ composer test
 ## Changelog
 
 Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
-## Contributing
-
-Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
-
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
 
 ## Credits
 
