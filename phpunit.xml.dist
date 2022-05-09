@@ -19,7 +19,7 @@
     verbose="true"
 >
     <testsuites>
-        <testsuite name="CbowOfRivia Test Suite">
+        <testsuite name="DmarcRecordBuilder Test Suite">
             <directory>tests</directory>
         </testsuite>
     </testsuites>
