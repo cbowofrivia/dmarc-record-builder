@@ -2,7 +2,7 @@ name: "Update Changelog"
 
 on:
   release:
-    types: [released]
+    types: [ released ]
 
 jobs:
   update:
@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
 
@@ -20,9 +20,9 @@ jobs:
           latest-version: ${{ github.event.release.name }}
           release-notes: ${{ github.event.release.body }}
 
-      - name: Commit updated CHANGELOG
-        uses: stefanzweifel/git-auto-commit-action@v4
+      - name: Commit Changelog
+        uses: stefanzweifel/git-auto-commit-action@v5
         with:
           branch: main
-          commit_message: Update CHANGELOG
           file_pattern: CHANGELOG.md
+          commit_message: "Update Changelog"
