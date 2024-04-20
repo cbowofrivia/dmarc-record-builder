@@ -33,7 +33,10 @@
     "autoload-dev": {
         "psr-4": {
             "CbowOfRivia\\DmarcRecordBuilder\\Tests\\": "tests"
-        }
+        },
+        "files": [
+            "vendor/illuminate/collections/helpers.php"
+        ]
     },
     "scripts": {
         "test": "vendor/bin/pest",
