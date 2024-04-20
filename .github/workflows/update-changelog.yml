@@ -2,7 +2,7 @@ name: "Update Changelog"
 
 on:
   release:
-    types: [released]
+    types: [ released ]
 
 jobs:
   update:
@@ -10,7 +10,7 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           ref: main
 
