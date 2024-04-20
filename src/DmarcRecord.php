@@ -2,6 +2,7 @@
 
 namespace CbowOfRivia\DmarcRecordBuilder;
 
+use Illuminate\Support\Collection;
 use Webmozart\Assert\Assert;
 
 /**
@@ -12,31 +13,61 @@ use Webmozart\Assert\Assert;
  */
 class DmarcRecord
 {
+    public ?string $version = null;
+
+    public ?string $policy = null;
+
+    public ?string $subdomain_policy = null;
+
+    public ?int $pct = null;
+
+    public ?string $rua = null;
+
+    public ?string $ruf = null;
+
+    public ?string $adkim = null;
+
+    public ?string $aspf = null;
+
+    public ?string $reporting = null;
+
+    public ?int $interval = null;
+
     public function __construct(
-        public string  $version = 'DMARC1',
-        public ?string $policy = 'none',
-        public ?string $subdomain_policy = null,
-        public ?int    $pct = null,
-        public ?string $rua = null,
-        public ?string $ruf = null,
-        public ?string $adkim = null,
-        public ?string $aspf = null,
-        public ?string $reporting = null,
-        public ?string $interval = null
+        string $version = 'DMARC1',
+        ?string $policy = 'none',
+        ?string $subdomain_policy = null,
+        ?int $pct = null,
+        ?string $rua = null,
+        ?string $ruf = null,
+        ?string $adkim = null,
+        ?string $aspf = null,
+        ?string $reporting = null,
+        ?string $interval = null
     ) {
+        $this->version($version);
+        $this->policy($policy);
+        $this->subdomainPolicy($subdomain_policy);
+        $this->pct($pct);
+        $this->rua($rua);
+        $this->ruf($ruf);
+        $this->adkim($adkim);
+        $this->aspf($aspf);
+        $this->reporting($reporting);
+        $this->interval($interval);
     }
 
     /**
      * @link https://mxtoolbox.com/dmarc/details/dmarc-tags/dmarc-version
      */
-    public function version(string|null $version): static
+    public function version(?string $version): static
     {
         $this->version = $version;
 
         return $this;
     }
 
-    public function policy(string|null $policy): static
+    public function policy(?string $policy): static
     {
         Assert::inArray($policy, [
             'none', 'quarantine', 'reject', null,
@@ -47,7 +78,7 @@ class DmarcRecord
         return $this;
     }
 
-    public function subdomainPolicy(string|null $policy): static
+    public function subdomainPolicy(?string $policy): static
     {
         Assert::inArray($policy, [
             'none', 'quarantine', 'reject', null,
@@ -58,14 +89,14 @@ class DmarcRecord
         return $this;
     }
 
-    public function pct(int|null $percentage): static
+    public function pct(?int $percentage): static
     {
         $this->pct = $percentage;
 
         return $this;
     }
 
-    public function rua(string|null $mailto): static
+    public function rua(?string $mailto): static
     {
         if (is_null($mailto)) {
             $this->rua = $mailto;
@@ -84,7 +115,7 @@ class DmarcRecord
         return $this;
     }
 
-    public function ruf(string|null $mailto): static
+    public function ruf(?string $mailto): static
     {
         if (is_null($mailto)) {
             $this->rua = $mailto;
@@ -103,7 +134,7 @@ class DmarcRecord
         return $this;
     }
 
-    public function adkim(string|null $value): static
+    public function adkim(?string $value): static
     {
         Assert::inArray($value, [
             'relaxed', 'string', null,
@@ -114,7 +145,7 @@ class DmarcRecord
         return $this;
     }
 
-    public function aspf(string|null $value): static
+    public function aspf(?string $value): static
     {
         Assert::inArray($value, [
             'relaxed', 'string', null,
@@ -125,7 +156,7 @@ class DmarcRecord
         return $this;
     }
 
-    public function reporting(string|null $value): static
+    public function reporting(?string $value): static
     {
         Assert::inArray($value, [
             'all', 'any', 'dkim', 'spf', null,
@@ -136,11 +167,97 @@ class DmarcRecord
         return $this;
     }
 
-    public function interval(int|null $interval): static
+    public function interval(?int $interval): static
     {
         $this->interval = $interval;
 
         return $this;
+    }
+
+    public static function create(
+        string $version = 'DMARC1',
+        ?string $policy = 'none',
+        ?string $subdomain_policy = null,
+        ?int $pct = null,
+        ?string $rua = null,
+        ?string $ruf = null,
+        ?string $adkim = null,
+        ?string $aspf = null,
+        ?string $reporting = null,
+        ?string $interval = null
+    ): static {
+        return new static(
+            version: $version,
+            policy: $policy,
+            subdomain_policy: $subdomain_policy,
+            pct: $pct,
+            rua: $rua,
+            ruf: $ruf,
+            adkim: $adkim,
+            aspf: $aspf,
+            reporting: $reporting,
+            interval: $interval
+        );
+    }
+
+    public static function parse(string $record): static
+    {
+        $builder = new static();
+
+        collect(explode(';', $record))
+            ->mapWithKeys(function (string $part) {
+                $property = explode('=', trim($part));
+
+                if (count($property) !== 2) {
+                    return [];
+                }
+
+                return [$property[0] => $property[1]];
+            })
+            ->tap(function (Collection $properties) {
+                Assert::keyExists($properties->toArray(), 'v', 'DMARC version is required');
+                Assert::keyExists($properties->toArray(), 'p', 'DMARC policy is required');
+            })
+            ->each(fn (string $value, $key) => match ($key) {
+                'v' => $builder->version($value),
+                'p' => $builder->policy($value),
+                'sp' => $builder->subdomainPolicy($value),
+                'pct' => $builder->pct((int) $value),
+                'rua' => $builder->rua($value),
+                'ruf' => $builder->ruf($value),
+                'adkim' => $builder->adkim($builder->getHumanAdkimValue($value)),
+                'aspf' => $builder->aspf($builder->getHumanAspfValue($value)),
+                'ro' => $builder->reporting($builder->getHumanReportingOption($value)),
+                'ri' => $builder->interval((int) $value),
+            });
+
+        return $builder;
+    }
+
+    protected function getHumanAdkimValue(string $value): string
+    {
+        return match ($value) {
+            'r' => 'relaxed',
+            's' => 'strict',
+        };
+    }
+
+    protected function getHumanAspfValue(string $value): string
+    {
+        return match ($value) {
+            'r' => 'relaxed',
+            's' => 'strict',
+        };
+    }
+
+    protected function getHumanReportingOption(string $value): string
+    {
+        return match ($value) {
+            '0' => 'all',
+            '1' => 'any',
+            'd' => 'dkim',
+            's' => 'spf',
+        };
     }
 
     public function __toString(): string
@@ -151,33 +268,33 @@ class DmarcRecord
         $record .= $this->pct ? "pct=$this->pct; " : '';
         $record .= $this->rua ? "rua=$this->rua; " : '';
         $record .= $this->ruf ? "ruf=$this->ruf; " : '';
-        $record .= $this->adkim ? "adkim={$this->getRealAdkimValue()}; " : '';
-        $record .= $this->aspf ? "aspf={$this->getRealAspfValue()}; " : '';
-        $record .= $this->reporting ? "ro={$this->getRealReportingOption()}; " : '';
+        $record .= $this->adkim ? "adkim={$this->getRealAdkimValue($this->adkim)}; " : '';
+        $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
+        $record .= $this->reporting ? "ro={$this->getRealReportingOption($this->reporting)}; " : '';
         $record .= $this->interval ? "ri=$this->interval; " : '';
 
         return trim($record);
     }
 
-    private function getRealAdkimValue(): string
+    protected function getRealAdkimValue(string $value): string
     {
-        return match ($this->adkim) {
+        return match ($value) {
             'relaxed' => 'r',
             'strict' => 's',
         };
     }
 
-    private function getRealAspfValue(): string
+    protected function getRealAspfValue(string $value): string
     {
-        return match ($this->aspf) {
+        return match ($value) {
             'relaxed' => 'r',
             'strict' => 's',
         };
     }
 
-    private function getRealReportingOption(): string
+    protected function getRealReportingOption(string $value): string
     {
-        return match ($this->reporting) {
+        return match ($value) {
             'all' => '0',
             'any' => '1',
             'dkim' => 'd',
