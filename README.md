@@ -20,15 +20,15 @@ $record = new DmarcRecord();
 $record->policy('none')
     ->subdomainPolicy('none')
     ->pct(100)
-    ->rua('mailto:charlesrbowen93@gmail.com')
-    ->ruf('mailto:charlesrbowen93@gmail.com')
+    ->rua('mailto:example@example.com')
+    ->ruf('mailto:example@example.com')
     ->adkim('relaxed')
     ->aspf('relaxed')
     ->reporting('any')
     ->interval(604800);
 
 $record = (string) $record;
-// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:charlesrbowen93@gmail.com; ruf=mailto:charlesrbowen93@gmail.com; fo=1; adkim=r; aspf=r; ri=604800;
+// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; fo=1; adkim=r; aspf=r; ri=604800;
 ```
 
 You can also build the record in the constructor
@@ -39,8 +39,8 @@ $record = new DmarcRecord(
     policy: 'none',
     subdomain_policy: 'none',
     pct: 100,
-    rua: 'mailto:charlesrbowen93@gmail.com',
-    ruf: 'mailto:charlesrbowen93@gmail.com',
+    rua: 'mailto:example@example.com',
+    ruf: 'mailto:example@example.com',
     adkim: 'relaxed',
     aspf: 'relaxed',
     reporting: 'any',
@@ -48,7 +48,7 @@ $record = new DmarcRecord(
 );
 
 $record = (string) $record;
-// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:charlesrbowen93@gmail.com; ruf=mailto:charlesrbowen93@gmail.com; fo=1; adkim=r; aspf=r; ri=604800;
+// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; fo=1; adkim=r; aspf=r; ri=604800;
 ```
 
 ## Testing
