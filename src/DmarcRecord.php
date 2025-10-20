@@ -139,7 +139,7 @@ class DmarcRecord
     public function adkim(?string $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null,
+            'relaxed', 'strict', null,
         ]);
 
         $this->adkim = $value;
@@ -150,7 +150,7 @@ class DmarcRecord
     public function aspf(?string $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null,
+            'relaxed', 'strict', null,
         ]);
 
         $this->aspf = $value;
