@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CbowOfRivia\DmarcRecordBuilder;
 
 use Illuminate\Support\Collection;
@@ -43,7 +45,7 @@ class DmarcRecord
         ?string $adkim = null,
         ?string $aspf = null,
         ?string $reporting = null,
-        ?string $interval = null
+        ?int $interval = null
     ) {
         $this->version($version);
         $this->policy($policy);
@@ -118,7 +120,7 @@ class DmarcRecord
     public function ruf(?string $mailto): static
     {
         if (is_null($mailto)) {
-            $this->rua = $mailto;
+            $this->ruf = $mailto;
 
             return $this;
         }
@@ -137,7 +139,7 @@ class DmarcRecord
     public function adkim(?string $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null,
+            'relaxed', 'strict', null,
         ]);
 
         $this->adkim = $value;
@@ -148,7 +150,7 @@ class DmarcRecord
     public function aspf(?string $value): static
     {
         Assert::inArray($value, [
-            'relaxed', 'string', null,
+            'relaxed', 'strict', null,
         ]);
 
         $this->aspf = $value;
@@ -184,7 +186,7 @@ class DmarcRecord
         ?string $adkim = null,
         ?string $aspf = null,
         ?string $reporting = null,
-        ?string $interval = null
+        ?int $interval = null
     ): static {
         return new static(
             version: $version,
@@ -202,7 +204,7 @@ class DmarcRecord
 
     public static function parse(string $record): static
     {
-        $builder = new static();
+        $builder = new static;
 
         collect(explode(';', $record))
             ->mapWithKeys(function (string $part) {

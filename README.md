@@ -20,35 +20,35 @@ $record = new DmarcRecord();
 $record->policy('none')
     ->subdomainPolicy('none')
     ->pct(100)
-    ->rua('mailto:charlesrbowen93@gmail.com')
-    ->ruf('mailto:charlesrbowen93@gmail.com')
+    ->rua('mailto:example@example.com')
+    ->ruf('mailto:example@example.com')
     ->adkim('relaxed')
     ->aspf('relaxed')
     ->reporting('any')
     ->interval(604800);
 
 $record = (string) $record;
-// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:charlesrbowen93@gmail.com; ruf=mailto:charlesrbowen93@gmail.com; fo=1; adkim=r; aspf=r; ri=604800;
+// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; fo=1; adkim=r; aspf=r; ri=604800;
 ```
 
 You can also build the record in the constructor
 
 ```php
 $record = new DmarcRecord(
-    version: 'DMARC1'
-    policy: 'none'
-    subdomain_policy: 'none'
-    pct: 100
-    rua: 'mailto:charlesrbowen93@gmail.com'
-    ruf: 'mailto:charlesrbowen93@gmail.com'
-    adkim: 'relaxed'
-    aspf: 'relaxed' 
-    reporting: 'any'
+    version: 'DMARC1',
+    policy: 'none',
+    subdomain_policy: 'none',
+    pct: 100,
+    rua: 'mailto:example@example.com',
+    ruf: 'mailto:example@example.com',
+    adkim: 'relaxed',
+    aspf: 'relaxed',
+    reporting: 'any',
     interval: 604800
 );
 
 $record = (string) $record;
-// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:charlesrbowen93@gmail.com; ruf=mailto:charlesrbowen93@gmail.com; fo=1; adkim=r; aspf=r; ri=604800;
+// v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; fo=1; adkim=r; aspf=r; ri=604800;
 ```
 
 ## Testing
@@ -57,11 +57,6 @@ $record = (string) $record;
 composer test
 ```
 
-If you're using WSL2 + Docker, you can install and test with the provided docker-compose.yaml file.
-```bash
-docker-compose run --rm php composer install && \
-docker-compose run --rm php composer test
-```
 
 ## Changelog
 
