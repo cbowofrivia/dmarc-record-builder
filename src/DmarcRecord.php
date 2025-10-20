@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CbowOfRivia\DmarcRecordBuilder;
 
 use Illuminate\Support\Collection;
@@ -43,7 +45,7 @@ class DmarcRecord
         ?string $adkim = null,
         ?string $aspf = null,
         ?string $reporting = null,
-        ?string $interval = null
+        ?int $interval = null
     ) {
         $this->version($version);
         $this->policy($policy);
@@ -118,7 +120,7 @@ class DmarcRecord
     public function ruf(?string $mailto): static
     {
         if (is_null($mailto)) {
-            $this->rua = $mailto;
+            $this->ruf = $mailto;
 
             return $this;
         }
@@ -184,7 +186,7 @@ class DmarcRecord
         ?string $adkim = null,
         ?string $aspf = null,
         ?string $reporting = null,
-        ?string $interval = null
+        ?int $interval = null
     ): static {
         return new static(
             version: $version,
