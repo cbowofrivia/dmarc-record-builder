@@ -23,7 +23,7 @@
     "require-dev": {
         "laravel/pint": "^1.15",
         "symfony/var-dumper": "^7.0",
-        "pestphp/pest": "^4"
+        "pestphp/pest": "^3"
     },
     "autoload": {
         "psr-4": {
@@ -33,10 +33,7 @@
     "autoload-dev": {
         "psr-4": {
             "CbowOfRivia\\DmarcRecordBuilder\\Tests\\": "tests"
-        },
-        "files": [
-            "vendor/illuminate/collections/helpers.php"
-        ]
+        }
     },
     "scripts": {
         "test": "vendor/bin/pest",
