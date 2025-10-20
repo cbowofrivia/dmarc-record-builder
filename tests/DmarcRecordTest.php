@@ -40,6 +40,29 @@ describe('constructor', function () {
             ->reporting->toEqual('dkim')
             ->interval->toEqual(7200);
     });
+
+    it('constructs with np, psd, and t parameters', function () {
+        $record = new DmarcRecord(
+            version: 'DMARC1',
+            policy: 'quarantine',
+            subdomain_policy: 'reject',
+            pct: 50,
+            rua: 'mailto:test@example.com',
+            ruf: 'mailto:test@example.com',
+            adkim: 'strict',
+            aspf: 'relaxed',
+            reporting: 'dkim',
+            interval: 7200,
+            np: 'reject',
+            psd: 'y',
+            t: 'n'
+        );
+
+        expect($record)
+            ->np->toEqual('reject')
+            ->psd->toEqual('y')
+            ->t->toEqual('n');
+    });
 });
 
 describe('fluent methods', function () {
@@ -97,6 +120,9 @@ describe('fluent methods', function () {
         ['aspf', 'strict', 'aspf'],
         ['reporting', 'all', 'reporting'],
         ['interval', 3600, 'interval'],
+        ['nonExistentSubdomainPolicy', 'reject', 'np'],
+        ['publicSuffixDomainPolicy', 'y', 'psd'],
+        ['testingMode', 'y', 't'],
     ]);
 });
 
@@ -143,6 +169,21 @@ describe('validation', function () {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
             ->toThrow(InvalidArgumentException::class);
     })->with([5, 'invalid', 'bad', 'wrong']);
+
+    it('rejects invalid np values', function (string $invalidNp) {
+        expect(fn () => DmarcRecord::create(np: $invalidNp))
+            ->toThrow(InvalidArgumentException::class);
+    })->with(['invalid', 'bad', 'wrong']);
+
+    it('rejects invalid psd values', function (string $invalidPsd) {
+        expect(fn () => DmarcRecord::create(psd: $invalidPsd))
+            ->toThrow(InvalidArgumentException::class);
+    })->with(['z', 'invalid', 'bad']);
+
+    it('rejects invalid t values', function (string $invalidT) {
+        expect(fn () => DmarcRecord::create(t: $invalidT))
+            ->toThrow(InvalidArgumentException::class);
+    })->with(['x', 'invalid', 'bad']);
 });
 
 describe('string output', function () {
@@ -167,6 +208,31 @@ describe('string output', function () {
 
         $expected = 'v=DMARC1; p=reject; sp=quarantine; pct=75; rua=mailto:test@example.com; ruf=mailto:test@example.com; adkim=s; aspf=r; ro=0; ri=3600;';
         expect((string) $record)->toEqual($expected);
+    });
+
+    it('includes np (as sp) when only np is set', function () {
+        $record = new DmarcRecord;
+        $record->version('DMARC1')
+            ->policy('none')
+            ->subdomainPolicy(null)
+            ->nonExistentSubdomainPolicy('reject');
+
+        $output = (string) $record;
+        expect($output)
+            ->toContain('v=DMARC1;')
+            ->toContain('p=none;')
+            ->toContain('sp=reject;');
+    });
+
+    it('includes psd and t when set', function () {
+        $record = new DmarcRecord('DMARC1', 'none');
+        $record->publicSuffixDomainPolicy('y')
+            ->testingMode('n');
+
+        $output = (string) $record;
+        expect($output)
+            ->toContain('psd=y;')
+            ->toContain('t=n;');
     });
 
     it('excludes null values from output', function () {
@@ -250,6 +316,16 @@ describe('parsing', function () {
             ->interval->toEqual(3600)
             ->and((string) $instance)
             ->toEqual($record);
+    });
+
+    it('parses np, psd, and t values', function () {
+        $record = 'v=DMARC1; p=none; np=reject; psd=y; t=n;';
+        $instance = DmarcRecord::parse($record);
+
+        expect($instance)
+            ->np->toEqual('reject')
+            ->psd->toEqual('y')
+            ->t->toEqual('n');
     });
 
     it('parses minimal valid record', function () {
