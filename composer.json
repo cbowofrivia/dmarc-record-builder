@@ -17,13 +17,13 @@
     ],
     "require": {
         "php": "^8.2",
-        "illuminate/collections": "^11.4",
+        "illuminate/collections": "^12.0",
         "webmozart/assert": "^1.10"
     },
     "require-dev": {
         "laravel/pint": "^1.15",
         "symfony/var-dumper": "^7.0",
-        "pestphp/pest": "^2"
+        "pestphp/pest": "^3"
     },
     "autoload": {
         "psr-4": {
@@ -33,10 +33,7 @@
     "autoload-dev": {
         "psr-4": {
             "CbowOfRivia\\DmarcRecordBuilder\\Tests\\": "tests"
-        },
-        "files": [
-            "vendor/illuminate/collections/helpers.php"
-        ]
+        }
     },
     "scripts": {
         "test": "vendor/bin/pest",

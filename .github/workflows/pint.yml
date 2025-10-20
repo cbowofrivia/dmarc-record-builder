@@ -3,10 +3,14 @@ on: pull_request
 jobs:
   pint:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
     steps:
       - uses: actions/checkout@v4
         with:
           ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: "Laravel Pint"
         uses: aglipanci/laravel-pint-action@2.0.0
@@ -14,3 +18,4 @@ jobs:
       - uses: stefanzweifel/git-auto-commit-action@v5
         with:
           commit_message: "Laravel Pint 🍻"
+          token: ${{ secrets.GITHUB_TOKEN }}
