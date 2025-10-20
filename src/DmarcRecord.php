@@ -275,7 +275,6 @@ class DmarcRecord
                 'v' => $builder->version($value),
                 'p' => $builder->policy($value),
                 'sp' => $builder->subdomainPolicy($value),
-                'np' => $builder->subdomainPolicy($value),
                 'pct' => $builder->pct((int) $value),
                 'rua' => $builder->rua($value),
                 'ruf' => $builder->ruf($value),
