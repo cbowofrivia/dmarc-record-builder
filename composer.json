@@ -23,7 +23,7 @@
     "require-dev": {
         "laravel/pint": "^1.15",
         "symfony/var-dumper": "^7.0",
-        "pestphp/pest": "^2"
+        "pestphp/pest": "^3"
     },
     "autoload": {
         "psr-4": {
