@@ -4,7 +4,7 @@ use CbowOfRivia\DmarcRecordBuilder\DmarcRecord;
 use Webmozart\Assert\InvalidArgumentException;
 
 beforeEach(function () {
-    $this->record = new DmarcRecord();
+    $this->record = new DmarcRecord;
 });
 
 it('sets defaults', function () {
@@ -14,7 +14,7 @@ it('sets defaults', function () {
 });
 
 it('provides a string output', function () {
-    $record = new DmarcRecord();
+    $record = new DmarcRecord;
 
     $record->policy('none')
         ->subdomainPolicy('none')
@@ -40,7 +40,7 @@ it('provides a string output', function () {
 });
 
 it('includes spaces between records', function () {
-    $record = new DmarcRecord();
+    $record = new DmarcRecord;
 
     expect((string) $record)
         ->toBeString()

@@ -202,7 +202,7 @@ class DmarcRecord
 
     public static function parse(string $record): static
     {
-        $builder = new static();
+        $builder = new static;
 
         collect(explode(';', $record))
             ->mapWithKeys(function (string $part) {
