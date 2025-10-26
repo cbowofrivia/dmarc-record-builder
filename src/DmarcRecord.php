@@ -267,7 +267,7 @@ class DmarcRecord
 
                 return [$property[0] => $property[1]];
             })
-            ->tap(function (Collection $properties) {
+            ->tap(function (Collection $properties): void {
                 Assert::keyExists($properties->toArray(), 'v', 'DMARC version is required');
                 Assert::keyExists($properties->toArray(), 'p', 'DMARC policy is required');
             })

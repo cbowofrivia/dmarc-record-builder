@@ -3,18 +3,18 @@
 use CbowOfRivia\DmarcRecordBuilder\DmarcRecord;
 use Webmozart\Assert\InvalidArgumentException;
 
-beforeEach(function () {
+beforeEach(function (): void {
     $this->record = new DmarcRecord;
 });
 
-describe('constructor', function () {
-    it('sets default values', function () {
+describe('constructor', function (): void {
+    it('sets default values', function (): void {
         expect($this->record)
             ->version->toEqual('DMARC1')
             ->policy->toEqual('none');
     });
 
-    it('constructs with all parameters', function () {
+    it('constructs with all parameters', function (): void {
         $record = new DmarcRecord(
             version: 'DMARC1',
             policy: 'quarantine',
@@ -41,7 +41,7 @@ describe('constructor', function () {
             ->interval->toEqual(7200);
     });
 
-    it('constructs with np, psd, and t parameters', function () {
+    it('constructs with np, psd, and t parameters', function (): void {
         $record = new DmarcRecord(
             version: 'DMARC1',
             policy: 'quarantine',
@@ -65,8 +65,8 @@ describe('constructor', function () {
     });
 });
 
-describe('fluent methods', function () {
-    it('supports method chaining and returns self', function () {
+describe('fluent methods', function (): void {
+    it('supports method chaining and returns self', function (): void {
         $record = new DmarcRecord;
 
         $result = $record
@@ -95,7 +95,7 @@ describe('fluent methods', function () {
             ->interval->toEqual(1800);
     });
 
-    it('handles null values in all methods', function (string $method, mixed $value, string $property) {
+    it('handles null values in all methods', function (string $method, mixed $value, string $property): void {
         $record = new DmarcRecord;
 
         // Test setting to null
@@ -126,18 +126,18 @@ describe('fluent methods', function () {
     ]);
 });
 
-describe('validation', function () {
-    it('rejects invalid policy values', function (string $invalidPolicy) {
+describe('validation', function (): void {
+    it('rejects invalid policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(policy: $invalidPolicy))
             ->toThrow(InvalidArgumentException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
-    it('rejects invalid subdomain policy values', function (string $invalidPolicy) {
+    it('rejects invalid subdomain policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(subdomain_policy: $invalidPolicy))
             ->toThrow(InvalidArgumentException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
-    it('rejects malformed rua addresses', function (string $invalidRua) {
+    it('rejects malformed rua addresses', function (string $invalidRua): void {
         expect(fn () => DmarcRecord::create(rua: $invalidRua))
             ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
     })->with([
@@ -146,7 +146,7 @@ describe('validation', function () {
         'invalid-format',
     ]);
 
-    it('rejects malformed ruf addresses', function (string $invalidRuf) {
+    it('rejects malformed ruf addresses', function (string $invalidRuf): void {
         expect(fn () => DmarcRecord::create(ruf: $invalidRuf))
             ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
     })->with([
@@ -155,44 +155,44 @@ describe('validation', function () {
         'no-mailto@example.com',
     ]);
 
-    it('rejects invalid adkim values', function (string $invalidAdkim) {
+    it('rejects invalid adkim values', function (string $invalidAdkim): void {
         expect(fn () => DmarcRecord::create(adkim: $invalidAdkim))
             ->toThrow(InvalidArgumentException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
-    it('rejects invalid aspf values', function (string $invalidAspf) {
+    it('rejects invalid aspf values', function (string $invalidAspf): void {
         expect(fn () => DmarcRecord::create(aspf: $invalidAspf))
             ->toThrow(InvalidArgumentException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
-    it('rejects invalid reporting values', function (mixed $invalidReporting) {
+    it('rejects invalid reporting values', function (mixed $invalidReporting): void {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
             ->toThrow(InvalidArgumentException::class);
     })->with([5, 'invalid', 'bad', 'wrong']);
 
-    it('rejects invalid np values', function (string $invalidNp) {
+    it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
             ->toThrow(InvalidArgumentException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
-    it('rejects invalid psd values', function (string $invalidPsd) {
+    it('rejects invalid psd values', function (string $invalidPsd): void {
         expect(fn () => DmarcRecord::create(psd: $invalidPsd))
             ->toThrow(InvalidArgumentException::class);
     })->with(['z', 'invalid', 'bad']);
 
-    it('rejects invalid t values', function (string $invalidT) {
+    it('rejects invalid t values', function (string $invalidT): void {
         expect(fn () => DmarcRecord::create(t: $invalidT))
             ->toThrow(InvalidArgumentException::class);
     })->with(['x', 'invalid', 'bad']);
 });
 
-describe('string output', function () {
-    it('generates basic record with version and policy only', function () {
+describe('string output', function (): void {
+    it('generates basic record with version and policy only', function (): void {
         $record = new DmarcRecord('DMARC1', 'quarantine');
         expect((string) $record)->toEqual('v=DMARC1; p=quarantine;');
     });
 
-    it('generates complete record with all fields', function () {
+    it('generates complete record with all fields', function (): void {
         $record = new DmarcRecord(
             version: 'DMARC1',
             policy: 'reject',
@@ -210,7 +210,7 @@ describe('string output', function () {
         expect((string) $record)->toEqual($expected);
     });
 
-    it('includes np (as sp) when only np is set', function () {
+    it('includes np (as sp) when only np is set', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('none')
@@ -224,7 +224,7 @@ describe('string output', function () {
             ->toContain('sp=reject;');
     });
 
-    it('includes psd and t when set', function () {
+    it('includes psd and t when set', function (): void {
         $record = new DmarcRecord('DMARC1', 'none');
         $record->publicSuffixDomainPolicy('y')
             ->testingMode('n');
@@ -235,7 +235,7 @@ describe('string output', function () {
             ->toContain('t=n;');
     });
 
-    it('excludes null values from output', function () {
+    it('excludes null values from output', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('none')
@@ -251,7 +251,7 @@ describe('string output', function () {
         expect((string) $record)->toEqual('v=DMARC1; p=none;');
     });
 
-    it('generates partial record with selected fields', function () {
+    it('generates partial record with selected fields', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('quarantine')
@@ -273,7 +273,7 @@ describe('string output', function () {
             ->not->toContain('ri=');
     });
 
-    it('trims trailing spaces and ends with semicolon', function () {
+    it('trims trailing spaces and ends with semicolon', function (): void {
         $record = new DmarcRecord('DMARC1', 'none');
         $output = (string) $record;
 
@@ -282,7 +282,7 @@ describe('string output', function () {
         expect($output)->toEndWith(';');
     });
 
-    it('converts values correctly for string output', function (string $method, string $humanValue, string $expectedOutput, string $outputField) {
+    it('converts values correctly for string output', function (string $method, string $humanValue, string $expectedOutput, string $outputField): void {
         $record = new DmarcRecord;
         $record->$method($humanValue);
         expect((string) $record)->toContain("$outputField=$expectedOutput");
@@ -298,8 +298,8 @@ describe('string output', function () {
     ]);
 });
 
-describe('parsing', function () {
-    it('parses complete record correctly', function () {
+describe('parsing', function (): void {
+    it('parses complete record correctly', function (): void {
         $record = 'v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; adkim=r; aspf=r; ri=3600;';
         $instance = DmarcRecord::parse($record);
 
@@ -318,7 +318,7 @@ describe('parsing', function () {
             ->toEqual($record);
     });
 
-    it('parses np, psd, and t values', function () {
+    it('parses np, psd, and t values', function (): void {
         $record = 'v=DMARC1; p=none; np=reject; psd=y; t=n;';
         $instance = DmarcRecord::parse($record);
 
@@ -328,7 +328,7 @@ describe('parsing', function () {
             ->t->toEqual('n');
     });
 
-    it('parses minimal valid record', function () {
+    it('parses minimal valid record', function (): void {
         $record = 'v=DMARC1; p=none;';
         $instance = DmarcRecord::parse($record);
 
@@ -345,7 +345,7 @@ describe('parsing', function () {
             ->interval->toBeNull();
     });
 
-    it('handles various parsing edge cases', function (string $record, array $expectedValues) {
+    it('handles various parsing edge cases', function (string $record, array $expectedValues): void {
         $instance = DmarcRecord::parse($record);
 
         foreach ($expectedValues as $property => $expectedValue) {
@@ -374,7 +374,7 @@ describe('parsing', function () {
         ],
     ]);
 
-    it('converts short form values to human readable during parsing', function (string $dmarcTag, string $shortForm, string $property, string $expected) {
+    it('converts short form values to human readable during parsing', function (string $dmarcTag, string $shortForm, string $property, string $expected): void {
         $record = "v=DMARC1; p=none; $dmarcTag=$shortForm;";
         $instance = DmarcRecord::parse($record);
         expect($instance->$property)->toEqual($expected);
@@ -389,7 +389,7 @@ describe('parsing', function () {
         ['ro', 's', 'reporting', 'spf'],
     ]);
 
-    it('fails with missing required fields', function (string $record, string $expectedException) {
+    it('fails with missing required fields', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
             ->toThrow(InvalidArgumentException::class, $expectedException);
     })->with([
@@ -399,7 +399,7 @@ describe('parsing', function () {
         ['invalid-record', 'DMARC version is required'],
     ]);
 
-    it('fails with invalid field values', function (string $record, string $expectedException) {
+    it('fails with invalid field values', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
             ->toThrow(InvalidArgumentException::class, $expectedException);
     })->with([
@@ -409,7 +409,7 @@ describe('parsing', function () {
         ['v=DMARC1; p=none; ruf=invalid@example.com;', 'ruf mailto address should start with "mailto:"'],
     ]);
 
-    it('fails with unhandled match cases', function (string $record, string $expectedException) {
+    it('fails with unhandled match cases', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
             ->toThrow(UnhandledMatchError::class, $expectedException);
     })->with([
@@ -419,8 +419,8 @@ describe('parsing', function () {
     ]);
 });
 
-describe('static factory methods', function () {
-    it('creates record using create method', function () {
+describe('static factory methods', function (): void {
+    it('creates record using create method', function (): void {
         $record = DmarcRecord::create(
             version: 'none',
             policy: 'reject',
