@@ -15,7 +15,7 @@ jobs:
       - name: "Laravel Pint"
         uses: aglipanci/laravel-pint-action@2.0.0
 
-      - uses: stefanzweifel/git-auto-commit-action@v5
+      - uses: stefanzweifel/git-auto-commit-action@v7
         with:
           commit_message: "Laravel Pint 🍻"
           token: ${{ secrets.GITHUB_TOKEN }}
