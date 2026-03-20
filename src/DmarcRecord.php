@@ -329,7 +329,7 @@ class DmarcRecord
         $record .= $this->ruf ? "ruf=$this->ruf; " : '';
         $record .= $this->adkim ? "adkim={$this->getRealAdkimValue($this->adkim)}; " : '';
         $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
-        $record .= $this->reporting ? 'fo=' . implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)) . '; ' : '';
+        $record .= $this->reporting ? 'fo='.implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)).'; ' : '';
         $record .= $this->interval ? "ri=$this->interval; " : '';
         $record .= $this->np ? "sp=$this->np; " : '';
         $record .= $this->psd ? "psd=$this->psd; " : '';
