@@ -2,6 +2,7 @@
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/cbowofrivia/dmarc-record-builder.svg?style=flat-square)](https://packagist.org/packages/cbowofrivia/dmarc-record-builder)
 [![Tests](https://github.com/cbowofrivia/dmarc-record-builder/actions/workflows/run-tests.yml/badge.svg?branch=main)](https://github.com/cbowofrivia/dmarc-record-builder/actions/workflows/run-tests.yml)
+[![codecov](https://codecov.io/gh/cbowofrivia/dmarc-record-builder/graph/badge.svg)](https://codecov.io/gh/cbowofrivia/dmarc-record-builder)
 [![Total Downloads](https://img.shields.io/packagist/dt/cbowofrivia/dmarc-record-builder.svg?style=flat-square)](https://packagist.org/packages/cbowofrivia/dmarc-record-builder)
 
 A PHP package for building and parsing DMARC DNS records with a fluent, human-friendly API. Accepts readable values (`'relaxed'`, `'strict'`, `'reject'`) and outputs correctly formatted DMARC strings.
