@@ -333,7 +333,7 @@ class DmarcRecord
         $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
         $record .= $this->reporting ? 'fo='.implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)).'; ' : '';
         $record .= $this->interval ? "ri=$this->interval; " : '';
-        $record .= $this->np ? "sp=$this->np; " : '';
+        $record .= $this->np ? "np=$this->np; " : '';
         $record .= $this->psd ? "psd=$this->psd; " : '';
         $record .= $this->t ? "t=$this->t; " : '';
 
