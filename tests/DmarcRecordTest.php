@@ -184,6 +184,17 @@ describe('validation', function (): void {
             ->toThrow(InvalidArgumentException::class);
     })->with(['invalid', 'bad', 'wrong', ['invalid'], ['bad'], ['wrong']]);
 
+    it('rejects mutually exclusive reporting values all and any', function (): void {
+        expect(fn () => DmarcRecord::create(reporting: ['all', 'any']))
+            ->toThrow(InvalidArgumentException::class, 'mutually exclusive');
+    });
+
+    it('deduplicates reporting values silently', function (): void {
+        $record = new DmarcRecord;
+        $record->reporting(['dkim', 'dkim', 'spf']);
+        expect($record->reporting)->toEqual(['dkim', 'spf']);
+    });
+
     it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
             ->toThrow(InvalidArgumentException::class);

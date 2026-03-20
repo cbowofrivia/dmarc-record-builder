@@ -103,39 +103,6 @@ class DmarcRecord
         return $this;
     }
 
-    public function nonExistentSubdomainPolicy(?string $policy): static
-    {
-        Assert::inArray($policy, [
-            'none', 'quarantine', 'reject', null,
-        ]);
-
-        $this->np = $policy;
-
-        return $this;
-    }
-
-    public function publicSuffixDomainPolicy(?string $policy): static
-    {
-        Assert::inArray($policy, [
-            'y', 'n', 'u', null,
-        ]);
-
-        $this->psd = $policy;
-
-        return $this;
-    }
-
-    public function testingMode(?string $testingMode): static
-    {
-        Assert::inArray($testingMode, [
-            'y', 'n', null,
-        ]);
-
-        $this->t = $testingMode;
-
-        return $this;
-    }
-
     public function pct(?int $percentage): static
     {
         $this->pct = $percentage;
@@ -209,7 +176,14 @@ class DmarcRecord
             $values = [$values];
         }
 
+        $values = array_values(array_unique($values));
+
         Assert::allInArray($values, ['all', 'any', 'dkim', 'spf']);
+
+        Assert::false(
+            value: in_array('all', $values) && in_array('any', $values),
+            message: 'Reporting options "all" (0) and "any" (1) are mutually exclusive.'
+        );
 
         $this->reporting = $values;
 
@@ -219,6 +193,39 @@ class DmarcRecord
     public function interval(?int $interval): static
     {
         $this->interval = $interval;
+
+        return $this;
+    }
+
+    public function nonExistentSubdomainPolicy(?string $policy): static
+    {
+        Assert::inArray($policy, [
+            'none', 'quarantine', 'reject', null,
+        ]);
+
+        $this->np = $policy;
+
+        return $this;
+    }
+
+    public function publicSuffixDomainPolicy(?string $policy): static
+    {
+        Assert::inArray($policy, [
+            'y', 'n', 'u', null,
+        ]);
+
+        $this->psd = $policy;
+
+        return $this;
+    }
+
+    public function testingMode(?string $testingMode): static
+    {
+        Assert::inArray($testingMode, [
+            'y', 'n', null,
+        ]);
+
+        $this->t = $testingMode;
 
         return $this;
     }
