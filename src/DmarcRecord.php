@@ -211,6 +211,13 @@ class DmarcRecord
 
         Assert::allInArray($values, ['all', 'any', 'dkim', 'spf']);
 
+        $values = array_values(array_unique($values));
+
+        Assert::false(
+            in_array('all', $values) && in_array('any', $values),
+            'Reporting options "all" (0) and "any" (1) are mutually exclusive.'
+        );
+
         $this->reporting = $values;
 
         return $this;
