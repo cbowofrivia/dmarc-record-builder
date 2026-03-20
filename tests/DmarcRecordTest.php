@@ -422,6 +422,12 @@ describe('parsing', function (): void {
         ['fo', 's', 'reporting', ['spf']],
     ]);
 
+    it('silently ignores unknown tags', function (): void {
+        $instance = DmarcRecord::parse('v=DMARC1; p=none; unknowntag=value; anothertag=123;');
+        expect($instance->version)->toEqual('DMARC1');
+        expect($instance->policy)->toEqual('none');
+    });
+
     it('fails with missing required fields', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
             ->toThrow(InvalidArgumentException::class, $expectedException);

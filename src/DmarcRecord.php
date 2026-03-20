@@ -290,6 +290,7 @@ class DmarcRecord
                 'np' => $builder->nonExistentSubdomainPolicy($value),
                 'psd' => $builder->publicSuffixDomainPolicy($value),
                 't' => $builder->testingMode($value),
+                default => null,
             });
 
         return $builder;
