@@ -230,7 +230,7 @@ describe('string output', function (): void {
         expect((string) $record)->toContain('fo=d:s');
     });
 
-    it('includes np (as sp) when only np is set', function (): void {
+    it('includes np when only np is set', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('none')
@@ -241,7 +241,8 @@ describe('string output', function (): void {
         expect($output)
             ->toContain('v=DMARC1;')
             ->toContain('p=none;')
-            ->toContain('sp=reject;');
+            ->toContain('np=reject;')
+            ->not->toContain('sp=reject;');
     });
 
     it('includes psd and t when set', function (): void {
