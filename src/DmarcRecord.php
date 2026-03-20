@@ -31,7 +31,7 @@ class DmarcRecord
 
     public ?string $aspf = null;
 
-    public ?string $reporting = null;
+    public array $reporting = [];
 
     public ?int $interval = null;
 
@@ -50,7 +50,7 @@ class DmarcRecord
         ?string $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
-        ?string $reporting = null,
+        array $reporting = [],
         ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
@@ -203,13 +203,13 @@ class DmarcRecord
         return $this;
     }
 
-    public function reporting(?string $value): static
+    public function reporting(array $values = []): static
     {
-        Assert::inArray($value, [
-            'all', 'any', 'dkim', 'spf', null,
-        ]);
+        foreach ($values as $value) {
+            Assert::inArray($value, ['all', 'any', 'dkim', 'spf']);
+        }
 
-        $this->reporting = $value;
+        $this->reporting = $values;
 
         return $this;
     }
@@ -230,7 +230,7 @@ class DmarcRecord
         ?string $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
-        ?string $reporting = null,
+        array $reporting = [],
         ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
@@ -280,7 +280,10 @@ class DmarcRecord
                 'ruf' => $builder->ruf($value),
                 'adkim' => $builder->adkim($builder->getHumanAdkimValue($value)),
                 'aspf' => $builder->aspf($builder->getHumanAspfValue($value)),
-                'ro' => $builder->reporting($builder->getHumanReportingOption($value)),
+                'fo' => $builder->reporting(array_map(
+                    fn (string $v) => $builder->getHumanReportingOption(trim($v)),
+                    explode(':', $value)
+                )),
                 'ri' => $builder->interval((int) $value),
                 'np' => $builder->nonExistentSubdomainPolicy($value),
                 'psd' => $builder->publicSuffixDomainPolicy($value),
@@ -326,7 +329,7 @@ class DmarcRecord
         $record .= $this->ruf ? "ruf=$this->ruf; " : '';
         $record .= $this->adkim ? "adkim={$this->getRealAdkimValue($this->adkim)}; " : '';
         $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
-        $record .= $this->reporting ? "ro={$this->getRealReportingOption($this->reporting)}; " : '';
+        $record .= $this->reporting ? 'fo=' . implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)) . '; ' : '';
         $record .= $this->interval ? "ri=$this->interval; " : '';
         $record .= $this->np ? "sp=$this->np; " : '';
         $record .= $this->psd ? "psd=$this->psd; " : '';

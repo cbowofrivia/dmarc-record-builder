@@ -24,7 +24,7 @@ describe('constructor', function (): void {
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
-            reporting: 'dkim',
+            reporting: ['dkim'],
             interval: 7200
         );
 
@@ -37,7 +37,7 @@ describe('constructor', function (): void {
             ->ruf->toEqual('mailto:test@example.com')
             ->adkim->toEqual('strict')
             ->aspf->toEqual('relaxed')
-            ->reporting->toEqual('dkim')
+            ->reporting->toEqual(['dkim'])
             ->interval->toEqual(7200);
     });
 
@@ -51,7 +51,7 @@ describe('constructor', function (): void {
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
-            reporting: 'dkim',
+            reporting: ['dkim'],
             interval: 7200,
             np: 'reject',
             psd: 'y',
@@ -78,7 +78,7 @@ describe('fluent methods', function (): void {
             ->ruf('mailto:test@example.com')
             ->adkim('strict')
             ->aspf('relaxed')
-            ->reporting('spf')
+            ->reporting(['spf'])
             ->interval(1800);
 
         expect($result)->toBe($record);
@@ -91,7 +91,7 @@ describe('fluent methods', function (): void {
             ->ruf->toEqual('mailto:test@example.com')
             ->adkim->toEqual('strict')
             ->aspf->toEqual('relaxed')
-            ->reporting->toEqual('spf')
+            ->reporting->toEqual(['spf'])
             ->interval->toEqual(1800);
     });
 
@@ -118,12 +118,20 @@ describe('fluent methods', function (): void {
         ['ruf', 'mailto:test@example.com', 'ruf'],
         ['adkim', 'relaxed', 'adkim'],
         ['aspf', 'strict', 'aspf'],
-        ['reporting', 'all', 'reporting'],
         ['interval', 3600, 'interval'],
         ['nonExistentSubdomainPolicy', 'reject', 'np'],
         ['publicSuffixDomainPolicy', 'y', 'psd'],
         ['testingMode', 'y', 't'],
     ]);
+
+    it('clears reporting options when set to empty array', function (): void {
+        $record = new DmarcRecord;
+        $record->reporting(['all', 'dkim']);
+        expect($record->reporting)->toEqual(['all', 'dkim']);
+
+        $record->reporting([]);
+        expect($record->reporting)->toEqual([]);
+    });
 });
 
 describe('validation', function (): void {
@@ -165,10 +173,14 @@ describe('validation', function (): void {
             ->toThrow(InvalidArgumentException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
-    it('rejects invalid reporting values', function (mixed $invalidReporting): void {
+    it('rejects invalid reporting values', function (array $invalidReporting): void {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
             ->toThrow(InvalidArgumentException::class);
-    })->with([5, 'invalid', 'bad', 'wrong']);
+    })->with([
+        [['invalid']],
+        [['bad']],
+        [['wrong']],
+    ]);
 
     it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
@@ -202,12 +214,18 @@ describe('string output', function (): void {
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
-            reporting: 'all',
+            reporting: ['all'],
             interval: 3600
         );
 
-        $expected = 'v=DMARC1; p=reject; sp=quarantine; pct=75; rua=mailto:test@example.com; ruf=mailto:test@example.com; adkim=s; aspf=r; ro=0; ri=3600;';
+        $expected = 'v=DMARC1; p=reject; sp=quarantine; pct=75; rua=mailto:test@example.com; ruf=mailto:test@example.com; adkim=s; aspf=r; fo=0; ri=3600;';
         expect((string) $record)->toEqual($expected);
+    });
+
+    it('generates fo tag with multiple colon-separated values', function (): void {
+        $record = new DmarcRecord;
+        $record->version('DMARC1')->policy('none')->reporting(['dkim', 'spf']);
+        expect((string) $record)->toContain('fo=d:s');
     });
 
     it('includes np (as sp) when only np is set', function (): void {
@@ -235,7 +253,7 @@ describe('string output', function (): void {
             ->toContain('t=n;');
     });
 
-    it('excludes null values from output', function (): void {
+    it('excludes empty reporting from output', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('none')
@@ -245,7 +263,7 @@ describe('string output', function (): void {
             ->ruf(null)
             ->adkim(null)
             ->aspf(null)
-            ->reporting(null)
+            ->reporting([])
             ->interval(null);
 
         expect((string) $record)->toEqual('v=DMARC1; p=none;');
@@ -269,7 +287,7 @@ describe('string output', function (): void {
             ->not->toContain('sp=')
             ->not->toContain('ruf=')
             ->not->toContain('aspf=')
-            ->not->toContain('ro=')
+            ->not->toContain('fo=')
             ->not->toContain('ri=');
     });
 
@@ -282,7 +300,7 @@ describe('string output', function (): void {
         expect($output)->toEndWith(';');
     });
 
-    it('converts values correctly for string output', function (string $method, string $humanValue, string $expectedOutput, string $outputField): void {
+    it('converts values correctly for string output', function (string $method, mixed $humanValue, string $expectedOutput, string $outputField): void {
         $record = new DmarcRecord;
         $record->$method($humanValue);
         expect((string) $record)->toContain("$outputField=$expectedOutput");
@@ -291,10 +309,10 @@ describe('string output', function (): void {
         ['adkim', 'strict', 's', 'adkim'],
         ['aspf', 'relaxed', 'r', 'aspf'],
         ['aspf', 'strict', 's', 'aspf'],
-        ['reporting', 'all', '0', 'ro'],
-        ['reporting', 'any', '1', 'ro'],
-        ['reporting', 'dkim', 'd', 'ro'],
-        ['reporting', 'spf', 's', 'ro'],
+        ['reporting', ['all'], '0', 'fo'],
+        ['reporting', ['any'], '1', 'fo'],
+        ['reporting', ['dkim'], 'd', 'fo'],
+        ['reporting', ['spf'], 's', 'fo'],
     ]);
 });
 
@@ -341,8 +359,20 @@ describe('parsing', function (): void {
             ->ruf->toBeNull()
             ->adkim->toBeNull()
             ->aspf->toBeNull()
-            ->reporting->toBeNull()
+            ->reporting->toEqual([])
             ->interval->toBeNull();
+    });
+
+    it('parses single fo value', function (): void {
+        $instance = DmarcRecord::parse('v=DMARC1; p=none; fo=d;');
+        expect($instance->reporting)->toEqual(['dkim']);
+        expect((string) $instance)->toContain('fo=d;');
+    });
+
+    it('parses multiple colon-separated fo values', function (): void {
+        $instance = DmarcRecord::parse('v=DMARC1; p=none; fo=d:s;');
+        expect($instance->reporting)->toEqual(['dkim', 'spf']);
+        expect((string) $instance)->toContain('fo=d:s;');
     });
 
     it('handles various parsing edge cases', function (string $record, array $expectedValues): void {
@@ -369,12 +399,12 @@ describe('parsing', function (): void {
             ['version' => 'DMARC1', 'policy' => 'quarantine', 'pct' => 50],
         ],
         [
-            'v=DMARC1; p=quarantine; adkim=r; aspf=s; ro=d;',
-            ['version' => 'DMARC1', 'policy' => 'quarantine', 'adkim' => 'relaxed', 'aspf' => 'strict', 'reporting' => 'dkim'],
+            'v=DMARC1; p=quarantine; adkim=r; aspf=s; fo=d;',
+            ['version' => 'DMARC1', 'policy' => 'quarantine', 'adkim' => 'relaxed', 'aspf' => 'strict', 'reporting' => ['dkim']],
         ],
     ]);
 
-    it('converts short form values to human readable during parsing', function (string $dmarcTag, string $shortForm, string $property, string $expected): void {
+    it('converts short form values to human readable during parsing', function (string $dmarcTag, string $shortForm, string $property, mixed $expected): void {
         $record = "v=DMARC1; p=none; $dmarcTag=$shortForm;";
         $instance = DmarcRecord::parse($record);
         expect($instance->$property)->toEqual($expected);
@@ -383,10 +413,10 @@ describe('parsing', function (): void {
         ['adkim', 's', 'adkim', 'strict'],
         ['aspf', 'r', 'aspf', 'relaxed'],
         ['aspf', 's', 'aspf', 'strict'],
-        ['ro', '0', 'reporting', 'all'],
-        ['ro', '1', 'reporting', 'any'],
-        ['ro', 'd', 'reporting', 'dkim'],
-        ['ro', 's', 'reporting', 'spf'],
+        ['fo', '0', 'reporting', ['all']],
+        ['fo', '1', 'reporting', ['any']],
+        ['fo', 'd', 'reporting', ['dkim']],
+        ['fo', 's', 'reporting', ['spf']],
     ]);
 
     it('fails with missing required fields', function (string $record, string $expectedException): void {
@@ -415,7 +445,7 @@ describe('parsing', function (): void {
     })->with([
         ['v=DMARC1; p=none; adkim=invalid;', 'Unhandled match case'],
         ['v=DMARC1; p=none; aspf=invalid;', 'Unhandled match case'],
-        ['v=DMARC1; p=none; ro=invalid;', 'Unhandled match case'],
+        ['v=DMARC1; p=none; fo=invalid;', 'Unhandled match case'],
     ]);
 });
 
@@ -430,7 +460,7 @@ describe('static factory methods', function (): void {
             ruf: 'mailto:example@example.com',
             adkim: 'relaxed',
             aspf: 'relaxed',
-            reporting: 'any',
+            reporting: ['any'],
             interval: 3600,
         );
 
@@ -445,6 +475,6 @@ describe('static factory methods', function (): void {
             ->adkim->toEqual('relaxed')
             ->aspf->toEqual('relaxed')
             ->interval->toEqual(3600)
-            ->reporting->toEqual('any');
+            ->reporting->toEqual(['any']);
     });
 });
