@@ -50,7 +50,7 @@ class DmarcRecord
         ?string $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
-        array $reporting = [],
+        string|array $reporting = [],
         ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
@@ -203,11 +203,13 @@ class DmarcRecord
         return $this;
     }
 
-    public function reporting(array $values = []): static
+    public function reporting(string|array $values = []): static
     {
-        foreach ($values as $value) {
-            Assert::inArray($value, ['all', 'any', 'dkim', 'spf']);
+        if (is_string($values)) {
+            $values = [$values];
         }
+
+        Assert::allInArray($values, ['all', 'any', 'dkim', 'spf']);
 
         $this->reporting = $values;
 
@@ -230,7 +232,7 @@ class DmarcRecord
         ?string $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
-        array $reporting = [],
+        string|array $reporting = [],
         ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,

@@ -124,6 +124,12 @@ describe('fluent methods', function (): void {
         ['testingMode', 'y', 't'],
     ]);
 
+    it('accepts a string and casts it to an array', function (): void {
+        $record = new DmarcRecord;
+        $record->reporting('dkim');
+        expect($record->reporting)->toEqual(['dkim']);
+    });
+
     it('clears reporting options when set to empty array', function (): void {
         $record = new DmarcRecord;
         $record->reporting(['all', 'dkim']);
@@ -173,14 +179,10 @@ describe('validation', function (): void {
             ->toThrow(InvalidArgumentException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
-    it('rejects invalid reporting values', function (array $invalidReporting): void {
+    it('rejects invalid reporting values', function (string|array $invalidReporting): void {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
             ->toThrow(InvalidArgumentException::class);
-    })->with([
-        [['invalid']],
-        [['bad']],
-        [['wrong']],
-    ]);
+    })->with(['invalid', 'bad', 'wrong', ['invalid'], ['bad'], ['wrong']]);
 
     it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
