@@ -1,0 +1,70 @@
+name: Bug Report
+description: Report a reproducible bug in dmarc-record-builder
+labels: ["bug"]
+
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Please fill in as much detail as possible so we can reproduce and fix it quickly.
+
+  - type: input
+    id: package-version
+    attributes:
+      label: Package Version
+      description: Which version of `cbowofrivia/dmarc-record-builder` are you using?
+      placeholder: e.g. 3.0.1
+    validations:
+      required: true
+
+  - type: input
+    id: php-version
+    attributes:
+      label: PHP Version
+      description: Which version of PHP are you running?
+      placeholder: e.g. 8.3.4
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Description
+      description: A clear description of what the bug is.
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Steps to Reproduce
+      description: A minimal code snippet or DMARC record string that demonstrates the problem.
+      render: php
+      placeholder: |
+        $record = new DmarcRecord();
+        $record->policy('reject');
+        // ...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected Behaviour
+      description: What did you expect to happen?
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual Behaviour
+      description: What actually happened? Include any exception messages or incorrect output.
+    validations:
+      required: true
+
+  - type: textarea
+    id: additional
+    attributes:
+      label: Additional Context
+      description: Any other context, links to the relevant RFC section, or related issues.
