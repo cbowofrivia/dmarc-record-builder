@@ -136,6 +136,8 @@ echo $record;
 
 Tags with a `null` value are omitted from the output string. Only `v` and `p` are always emitted.
 
+> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. `pct()` and `interval()` are deprecated and retained only for backwards compatibility; they are scheduled for removal in `4.0.0`.
+
 ### Tag Details
 
 #### `policy()` / `subdomainPolicy()` / `nonExistentSubdomainPolicy()`
@@ -152,6 +154,8 @@ Controls how the receiving mail server handles messages that fail DMARC checks.
 
 #### `pct()`
 
+> **Deprecated (RFC 9989)** — DMARCbis removed the `pct` tag. Still functional; scheduled for removal in `4.0.0`.
+
 The percentage of messages the policy is applied to (1–100). Useful for gradual rollout. Omit to apply the policy to all messages.
 
 #### `rua()` / `ruf()`
@@ -164,6 +168,13 @@ URIs for receiving DMARC reports. Must be prefixed with `mailto:`.
 ```php
 ->rua('mailto:dmarc@example.com')
 ->ruf('mailto:dmarc-forensic@example.com')
+```
+
+Both tags also accept an array of addresses (RFC 9989 — comma-separated list):
+
+```php
+->rua(['mailto:dmarc@example.com', 'mailto:backup@example.com'])
+// rua=mailto:dmarc@example.com,mailto:backup@example.com
 ```
 
 #### `adkim()` / `aspf()`
@@ -199,6 +210,8 @@ Multiple values produce a colon-separated `fo` tag:
 Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidArgumentException`.
 
 #### `interval()`
+
+> **Deprecated (RFC 9989)** — DMARCbis removed the `ri` tag. Still functional; scheduled for removal in `4.0.0`.
 
 How often (in seconds) receivers should send aggregate reports. The RFC default is 86400 (24 hours).
 
