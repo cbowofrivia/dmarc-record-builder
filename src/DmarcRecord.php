@@ -103,6 +103,10 @@ class DmarcRecord
         return $this;
     }
 
+    /**
+     * @deprecated RFC 9989 (DMARCbis) removed the "pct" tag. Retained for
+     *             backwards compatibility; scheduled for removal in 4.0.0.
+     */
     public function pct(?int $percentage): static
     {
         $this->pct = $percentage;
@@ -186,6 +190,10 @@ class DmarcRecord
         return $this;
     }
 
+    /**
+     * @deprecated RFC 9989 (DMARCbis) removed the "ri" tag. Retained for
+     *             backwards compatibility; scheduled for removal in 4.0.0.
+     */
     public function interval(?int $interval): static
     {
         $this->interval = $interval;
