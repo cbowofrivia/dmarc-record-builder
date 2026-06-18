@@ -2,6 +2,16 @@
 
 All notable changes to `dmarc-record-builder` will be documented in this file.
 
+## 3.1.0 - 2026-06-18
+
+### Added
+
+- **`rua()` and `ruf()` now accept an array of addresses** in addition to a single string, supporting the comma-separated URI list defined in RFC 9989 (DMARCbis). Each address is validated to start with `mailto:`; the value is stored and emitted as a comma-separated list (e.g. `rua=mailto:a@example.com,mailto:b@example.com`). Single-string usage is unchanged.
+
+### Deprecated
+
+- **`pct()` and `interval()`** — RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. Both methods continue to work unchanged and are retained for backwards compatibility, but are scheduled for removal in `4.0.0`.
+
 ## 3.0.0 - 2026-03-20
 
 ### Breaking Changes

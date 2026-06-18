@@ -136,6 +136,8 @@ echo $record;
 
 Tags with a `null` value are omitted from the output string. Only `v` and `p` are always emitted.
 
+> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. `pct()` and `interval()` are deprecated and retained only for backwards compatibility; they are scheduled for removal in `4.0.0`.
+
 ### Tag Details
 
 #### `policy()` / `subdomainPolicy()` / `nonExistentSubdomainPolicy()`
@@ -164,6 +166,13 @@ URIs for receiving DMARC reports. Must be prefixed with `mailto:`.
 ```php
 ->rua('mailto:dmarc@example.com')
 ->ruf('mailto:dmarc-forensic@example.com')
+```
+
+Both tags also accept an array of addresses (RFC 9989 — comma-separated list):
+
+```php
+->rua(['mailto:dmarc@example.com', 'mailto:backup@example.com'])
+// rua=mailto:dmarc@example.com,mailto:backup@example.com
 ```
 
 #### `adkim()` / `aspf()`
