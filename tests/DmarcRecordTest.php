@@ -138,6 +138,39 @@ describe('fluent methods', function (): void {
         $record->reporting([]);
         expect($record->reporting)->toEqual([]);
     });
+
+    it('accepts an array of addresses for rua and stores a comma-joined string', function (): void {
+        $record = new DmarcRecord;
+        $record->rua(['mailto:a@example.com', 'mailto:b@example.com']);
+        expect($record->rua)->toEqual('mailto:a@example.com,mailto:b@example.com');
+    });
+
+    it('accepts an array of addresses for ruf and stores a comma-joined string', function (): void {
+        $record = new DmarcRecord;
+        $record->ruf(['mailto:a@example.com', 'mailto:b@example.com']);
+        expect($record->ruf)->toEqual('mailto:a@example.com,mailto:b@example.com');
+    });
+
+    it('still accepts a single string for rua and ruf', function (): void {
+        $record = new DmarcRecord;
+        $record->rua('mailto:a@example.com')->ruf('mailto:b@example.com');
+        expect($record->rua)->toEqual('mailto:a@example.com');
+        expect($record->ruf)->toEqual('mailto:b@example.com');
+    });
+
+    it('trims whitespace around rua list items', function (): void {
+        $record = new DmarcRecord;
+        $record->rua(['mailto:a@example.com', '  mailto:b@example.com  ']);
+        expect($record->rua)->toEqual('mailto:a@example.com,mailto:b@example.com');
+    });
+
+    it('clears rua and ruf when given an empty array', function (): void {
+        $record = new DmarcRecord;
+        $record->rua(['mailto:a@example.com'])->ruf(['mailto:b@example.com']);
+        $record->rua([])->ruf([]);
+        expect($record->rua)->toBeNull();
+        expect($record->ruf)->toBeNull();
+    });
 });
 
 describe('validation', function (): void {
@@ -209,6 +242,16 @@ describe('validation', function (): void {
         expect(fn () => DmarcRecord::create(t: $invalidT))
             ->toThrow(InvalidArgumentException::class);
     })->with(['x', 'invalid', 'bad']);
+
+    it('rejects an array containing a non-mailto rua address', function (): void {
+        expect(fn () => DmarcRecord::create(rua: ['mailto:a@example.com', 'invalid@example.com']))
+            ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
+    });
+
+    it('rejects an array containing a non-mailto ruf address', function (): void {
+        expect(fn () => DmarcRecord::create(ruf: ['mailto:a@example.com', 'invalid@example.com']))
+            ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
+    });
 });
 
 describe('string output', function (): void {
@@ -328,6 +371,12 @@ describe('string output', function (): void {
         ['reporting', ['dkim'], 'd', 'fo'],
         ['reporting', ['spf'], 's', 'fo'],
     ]);
+
+    it('renders a multi-address rua as a comma-separated list', function (): void {
+        $record = new DmarcRecord('DMARC1', 'none');
+        $record->rua(['mailto:a@example.com', 'mailto:b@example.com']);
+        expect((string) $record)->toContain('rua=mailto:a@example.com,mailto:b@example.com;');
+    });
 });
 
 describe('parsing', function (): void {
@@ -348,6 +397,13 @@ describe('parsing', function (): void {
             ->interval->toEqual(3600)
             ->and((string) $instance)
             ->toEqual($record);
+    });
+
+    it('parses a comma-separated rua list and round-trips it', function (): void {
+        $record = 'v=DMARC1; p=none; rua=mailto:a@example.com,mailto:b@example.com;';
+        $instance = DmarcRecord::parse($record);
+        expect($instance->rua)->toEqual('mailto:a@example.com,mailto:b@example.com');
+        expect((string) $instance)->toContain('rua=mailto:a@example.com,mailto:b@example.com;');
     });
 
     it('parses np, psd, and t values', function (): void {

@@ -46,8 +46,8 @@ class DmarcRecord
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
         ?int $pct = null,
-        ?string $rua = null,
-        ?string $ruf = null,
+        string|array|null $rua = null,
+        string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
@@ -110,42 +110,38 @@ class DmarcRecord
         return $this;
     }
 
-    public function rua(?string $mailto): static
+    public function rua(string|array|null $mailto): static
     {
-        if (is_null($mailto)) {
-            $this->rua = $mailto;
-
-            return $this;
-        }
-
-        Assert::startsWith(
-            value: $mailto,
-            prefix: 'mailto:',
-            message: 'rua mailto address should start with "mailto:"'
-        );
-
-        $this->rua = $mailto;
+        $this->rua = is_null($mailto) ? null : $this->normalizeReportUris($mailto, 'rua');
 
         return $this;
     }
 
-    public function ruf(?string $mailto): static
+    public function ruf(string|array|null $mailto): static
     {
-        if (is_null($mailto)) {
-            $this->ruf = $mailto;
-
-            return $this;
-        }
-
-        Assert::startsWith(
-            value: $mailto,
-            prefix: 'mailto:',
-            message: 'ruf mailto address should start with "mailto:"'
-        );
-
-        $this->ruf = $mailto;
+        $this->ruf = is_null($mailto) ? null : $this->normalizeReportUris($mailto, 'ruf');
 
         return $this;
+    }
+
+    protected function normalizeReportUris(string|array $value, string $tag): ?string
+    {
+        $items = is_array($value) ? $value : explode(',', $value);
+
+        $items = array_values(array_filter(
+            array_map('trim', $items),
+            fn (string $item): bool => $item !== ''
+        ));
+
+        foreach ($items as $item) {
+            Assert::startsWith(
+                value: $item,
+                prefix: 'mailto:',
+                message: sprintf('%s mailto address should start with "mailto:"', $tag)
+            );
+        }
+
+        return $items === [] ? null : implode(',', $items);
     }
 
     public function adkim(?string $value): static
@@ -235,8 +231,8 @@ class DmarcRecord
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
         ?int $pct = null,
-        ?string $rua = null,
-        ?string $ruf = null,
+        string|array|null $rua = null,
+        string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
