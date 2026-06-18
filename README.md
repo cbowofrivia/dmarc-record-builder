@@ -154,6 +154,8 @@ Controls how the receiving mail server handles messages that fail DMARC checks.
 
 #### `pct()`
 
+> **Deprecated (RFC 9989)** — DMARCbis removed the `pct` tag. Still functional; scheduled for removal in `4.0.0`.
+
 The percentage of messages the policy is applied to (1–100). Useful for gradual rollout. Omit to apply the policy to all messages.
 
 #### `rua()` / `ruf()`
@@ -208,6 +210,8 @@ Multiple values produce a colon-separated `fo` tag:
 Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidArgumentException`.
 
 #### `interval()`
+
+> **Deprecated (RFC 9989)** — DMARCbis removed the `ri` tag. Still functional; scheduled for removal in `4.0.0`.
 
 How often (in seconds) receivers should send aggregate reports. The RFC default is 86400 (24 hours).
 
