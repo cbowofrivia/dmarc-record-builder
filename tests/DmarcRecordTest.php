@@ -1,7 +1,7 @@
 <?php
 
 use CbowOfRivia\DmarcRecordBuilder\DmarcRecord;
-use Webmozart\Assert\InvalidArgumentException;
+use CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException;
 
 beforeEach(function (): void {
     $this->record = new DmarcRecord;
@@ -19,26 +19,22 @@ describe('constructor', function (): void {
             version: 'DMARC1',
             policy: 'quarantine',
             subdomain_policy: 'reject',
-            pct: 50,
             rua: 'mailto:test@example.com',
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
             reporting: ['dkim'],
-            interval: 7200
         );
 
         expect($record)
             ->version->toEqual('DMARC1')
             ->policy->toEqual('quarantine')
             ->subdomain_policy->toEqual('reject')
-            ->pct->toEqual(50)
             ->rua->toEqual('mailto:test@example.com')
             ->ruf->toEqual('mailto:test@example.com')
             ->adkim->toEqual('strict')
             ->aspf->toEqual('relaxed')
-            ->reporting->toEqual(['dkim'])
-            ->interval->toEqual(7200);
+            ->reporting->toEqual(['dkim']);
     });
 
     it('constructs with np, psd, and t parameters', function (): void {
@@ -46,13 +42,11 @@ describe('constructor', function (): void {
             version: 'DMARC1',
             policy: 'quarantine',
             subdomain_policy: 'reject',
-            pct: 50,
             rua: 'mailto:test@example.com',
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
             reporting: ['dkim'],
-            interval: 7200,
             np: 'reject',
             psd: 'y',
             t: 'n'
@@ -73,26 +67,22 @@ describe('fluent methods', function (): void {
             ->version('DMARC1')
             ->policy('quarantine')
             ->subdomainPolicy('reject')
-            ->pct(75)
             ->rua('mailto:test@example.com')
             ->ruf('mailto:test@example.com')
             ->adkim('strict')
             ->aspf('relaxed')
-            ->reporting(['spf'])
-            ->interval(1800);
+            ->reporting(['spf']);
 
         expect($result)->toBe($record);
         expect($record)
             ->version->toEqual('DMARC1')
             ->policy->toEqual('quarantine')
             ->subdomain_policy->toEqual('reject')
-            ->pct->toEqual(75)
             ->rua->toEqual('mailto:test@example.com')
             ->ruf->toEqual('mailto:test@example.com')
             ->adkim->toEqual('strict')
             ->aspf->toEqual('relaxed')
-            ->reporting->toEqual(['spf'])
-            ->interval->toEqual(1800);
+            ->reporting->toEqual(['spf']);
     });
 
     it('handles null values in all methods', function (string $method, mixed $value, string $property): void {
@@ -113,12 +103,10 @@ describe('fluent methods', function (): void {
         ['version', 'DMARC1', 'version'],
         ['policy', 'quarantine', 'policy'],
         ['subdomainPolicy', 'reject', 'subdomain_policy'],
-        ['pct', 50, 'pct'],
         ['rua', 'mailto:test@example.com', 'rua'],
         ['ruf', 'mailto:test@example.com', 'ruf'],
         ['adkim', 'relaxed', 'adkim'],
         ['aspf', 'strict', 'aspf'],
-        ['interval', 3600, 'interval'],
         ['nonExistentSubdomainPolicy', 'reject', 'np'],
         ['publicSuffixDomainPolicy', 'y', 'psd'],
         ['testingMode', 'y', 't'],
@@ -176,17 +164,17 @@ describe('fluent methods', function (): void {
 describe('validation', function (): void {
     it('rejects invalid policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(policy: $invalidPolicy))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects invalid subdomain policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(subdomain_policy: $invalidPolicy))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects malformed rua addresses', function (string $invalidRua): void {
         expect(fn () => DmarcRecord::create(rua: $invalidRua))
-            ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'rua mailto address should start with "mailto:"');
     })->with([
         'no-mailto@mailto.com',
         'test@test.com',
@@ -195,7 +183,7 @@ describe('validation', function (): void {
 
     it('rejects malformed ruf addresses', function (string $invalidRuf): void {
         expect(fn () => DmarcRecord::create(ruf: $invalidRuf))
-            ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'ruf mailto address should start with "mailto:"');
     })->with([
         'test@test.com',
         'invalid-format',
@@ -204,22 +192,22 @@ describe('validation', function (): void {
 
     it('rejects invalid adkim values', function (string $invalidAdkim): void {
         expect(fn () => DmarcRecord::create(adkim: $invalidAdkim))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
     it('rejects invalid aspf values', function (string $invalidAspf): void {
         expect(fn () => DmarcRecord::create(aspf: $invalidAspf))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
     it('rejects invalid reporting values', function (string|array $invalidReporting): void {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong', ['invalid'], ['bad'], ['wrong']]);
 
     it('rejects mutually exclusive reporting values all and any', function (): void {
         expect(fn () => DmarcRecord::create(reporting: ['all', 'any']))
-            ->toThrow(InvalidArgumentException::class, 'mutually exclusive');
+            ->toThrow(InvalidDmarcRecordException::class, 'mutually exclusive');
     });
 
     it('deduplicates reporting values silently', function (): void {
@@ -230,27 +218,27 @@ describe('validation', function (): void {
 
     it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects invalid psd values', function (string $invalidPsd): void {
         expect(fn () => DmarcRecord::create(psd: $invalidPsd))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['z', 'invalid', 'bad']);
 
     it('rejects invalid t values', function (string $invalidT): void {
         expect(fn () => DmarcRecord::create(t: $invalidT))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['x', 'invalid', 'bad']);
 
     it('rejects an array containing a non-mailto rua address', function (): void {
         expect(fn () => DmarcRecord::create(rua: ['mailto:a@example.com', 'invalid@example.com']))
-            ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'rua mailto address should start with "mailto:"');
     });
 
     it('rejects an array containing a non-mailto ruf address', function (): void {
         expect(fn () => DmarcRecord::create(ruf: ['mailto:a@example.com', 'invalid@example.com']))
-            ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'ruf mailto address should start with "mailto:"');
     });
 });
 
@@ -265,16 +253,14 @@ describe('string output', function (): void {
             version: 'DMARC1',
             policy: 'reject',
             subdomain_policy: 'quarantine',
-            pct: 75,
             rua: 'mailto:test@example.com',
             ruf: 'mailto:test@example.com',
             adkim: 'strict',
             aspf: 'relaxed',
             reporting: ['all'],
-            interval: 3600
         );
 
-        $expected = 'v=DMARC1; p=reject; sp=quarantine; pct=75; rua=mailto:test@example.com; ruf=mailto:test@example.com; adkim=s; aspf=r; fo=0; ri=3600;';
+        $expected = 'v=DMARC1; p=reject; sp=quarantine; rua=mailto:test@example.com; ruf=mailto:test@example.com; adkim=s; aspf=r; fo=0;';
         expect((string) $record)->toEqual($expected);
     });
 
@@ -315,13 +301,11 @@ describe('string output', function (): void {
         $record->version('DMARC1')
             ->policy('none')
             ->subdomainPolicy(null)
-            ->pct(null)
             ->rua(null)
             ->ruf(null)
             ->adkim(null)
             ->aspf(null)
-            ->reporting([])
-            ->interval(null);
+            ->reporting([]);
 
         expect((string) $record)->toEqual('v=DMARC1; p=none;');
     });
@@ -330,7 +314,6 @@ describe('string output', function (): void {
         $record = new DmarcRecord;
         $record->version('DMARC1')
             ->policy('quarantine')
-            ->pct(50)
             ->rua('mailto:test@example.com')
             ->adkim('relaxed');
 
@@ -338,14 +321,12 @@ describe('string output', function (): void {
         expect($output)
             ->toContain('v=DMARC1;')
             ->toContain('p=quarantine;')
-            ->toContain('pct=50;')
             ->toContain('rua=mailto:test@example.com;')
             ->toContain('adkim=r')
             ->not->toContain('sp=')
             ->not->toContain('ruf=')
             ->not->toContain('aspf=')
-            ->not->toContain('fo=')
-            ->not->toContain('ri=');
+            ->not->toContain('fo=');
     });
 
     it('trims trailing spaces and ends with semicolon', function (): void {
@@ -381,7 +362,7 @@ describe('string output', function (): void {
 
 describe('parsing', function (): void {
     it('parses complete record correctly', function (): void {
-        $record = 'v=DMARC1; p=none; sp=none; pct=100; rua=mailto:example@example.com; ruf=mailto:example@example.com; adkim=r; aspf=r; ri=3600;';
+        $record = 'v=DMARC1; p=none; sp=none; rua=mailto:example@example.com; ruf=mailto:example@example.com; adkim=r; aspf=r;';
         $instance = DmarcRecord::parse($record);
 
         expect($instance)
@@ -389,12 +370,10 @@ describe('parsing', function (): void {
             ->version->toEqual('DMARC1')
             ->policy->toEqual('none')
             ->subdomain_policy->toEqual('none')
-            ->pct->toEqual(100)
             ->rua->toEqual('mailto:example@example.com')
             ->ruf->toEqual('mailto:example@example.com')
             ->adkim->toEqual('relaxed')
             ->aspf->toEqual('relaxed')
-            ->interval->toEqual(3600)
             ->and((string) $instance)
             ->toEqual($record);
     });
@@ -424,13 +403,11 @@ describe('parsing', function (): void {
             ->version->toEqual('DMARC1')
             ->policy->toEqual('none')
             ->subdomain_policy->toBeNull()
-            ->pct->toBeNull()
             ->rua->toBeNull()
             ->ruf->toBeNull()
             ->adkim->toBeNull()
             ->aspf->toBeNull()
-            ->reporting->toEqual([])
-            ->interval->toBeNull();
+            ->reporting->toEqual([]);
     });
 
     it('parses single fo value', function (): void {
@@ -457,16 +434,16 @@ describe('parsing', function (): void {
         }
     })->with([
         [
-            '  v=DMARC1;  p=quarantine;  sp=reject;  pct=50;  ',
-            ['version' => 'DMARC1', 'policy' => 'quarantine', 'subdomain_policy' => 'reject', 'pct' => 50],
+            '  v=DMARC1;  p=quarantine;  sp=reject;  ',
+            ['version' => 'DMARC1', 'policy' => 'quarantine', 'subdomain_policy' => 'reject'],
         ],
         [
-            'v=DMARC1; p=quarantine; ; pct=50;',
-            ['version' => 'DMARC1', 'policy' => 'quarantine', 'pct' => 50],
+            'v=DMARC1; p=quarantine; ; sp=reject;',
+            ['version' => 'DMARC1', 'policy' => 'quarantine', 'subdomain_policy' => 'reject'],
         ],
         [
-            'v=DMARC1; p=quarantine; invalid-part; pct=50;',
-            ['version' => 'DMARC1', 'policy' => 'quarantine', 'pct' => 50],
+            'v=DMARC1; p=quarantine; invalid-part; sp=reject;',
+            ['version' => 'DMARC1', 'policy' => 'quarantine', 'subdomain_policy' => 'reject'],
         ],
         [
             'v=DMARC1; p=quarantine; adkim=r; aspf=s; fo=d;',
@@ -495,9 +472,14 @@ describe('parsing', function (): void {
         expect($instance->policy)->toEqual('none');
     });
 
+    it('drops the removed pct and ri tags when parsing', function (): void {
+        $instance = DmarcRecord::parse('v=DMARC1; p=none; pct=50; ri=3600;');
+        expect((string) $instance)->toBe('v=DMARC1; p=none;');
+    });
+
     it('fails with missing required fields', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
-            ->toThrow(InvalidArgumentException::class, $expectedException);
+            ->toThrow(InvalidDmarcRecordException::class, $expectedException);
     })->with([
         ['p=none;', 'DMARC version is required'],
         ['v=DMARC1;', 'DMARC policy is required'],
@@ -507,7 +489,7 @@ describe('parsing', function (): void {
 
     it('fails with invalid field values', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
-            ->toThrow(InvalidArgumentException::class, $expectedException);
+            ->toThrow(InvalidDmarcRecordException::class, $expectedException);
     })->with([
         ['v=DMARC1; p=invalid;', 'Expected one of: "none", "quarantine", "reject", null. Got: "invalid"'],
         ['v=DMARC1; p=none; sp=invalid;', 'Expected one of: "none", "quarantine", "reject", null. Got: "invalid"'],
@@ -531,13 +513,11 @@ describe('static factory methods', function (): void {
             version: 'none',
             policy: 'reject',
             subdomain_policy: 'reject',
-            pct: 100,
             rua: 'mailto:example@example.com',
             ruf: 'mailto:example@example.com',
             adkim: 'relaxed',
             aspf: 'relaxed',
             reporting: ['any'],
-            interval: 3600,
         );
 
         expect($record)
@@ -545,12 +525,10 @@ describe('static factory methods', function (): void {
             ->version->toEqual('none')
             ->policy->toEqual('reject')
             ->subdomain_policy->toEqual('reject')
-            ->pct->toEqual(100)
             ->rua->toEqual('mailto:example@example.com')
             ->ruf->toEqual('mailto:example@example.com')
             ->adkim->toEqual('relaxed')
             ->aspf->toEqual('relaxed')
-            ->interval->toEqual(3600)
             ->reporting->toEqual(['any']);
     });
 });
