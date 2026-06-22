@@ -42,19 +42,17 @@ $record = new DmarcRecord();
 
 $record->policy('reject')
     ->subdomainPolicy('quarantine')
-    ->pct(100)
     ->rua('mailto:dmarc@example.com')
     ->ruf('mailto:dmarc-forensic@example.com')
     ->adkim('relaxed')
     ->aspf('strict')
     ->reporting(['dkim', 'spf'])
-    ->interval(86400)
     ->nonExistentSubdomainPolicy('reject')
     ->publicSuffixDomainPolicy('y')
     ->testingMode('n');
 
 echo $record;
-// v=DMARC1; p=reject; sp=quarantine; pct=100; rua=mailto:dmarc@example.com; ruf=mailto:dmarc-forensic@example.com; adkim=r; aspf=s; fo=d:s; ri=86400; np=reject; psd=y; t=n
+// v=DMARC1; p=reject; sp=quarantine; rua=mailto:dmarc@example.com; ruf=mailto:dmarc-forensic@example.com; adkim=r; aspf=s; fo=d:s; np=reject; psd=y; t=n
 ```
 
 ### Constructor
@@ -66,13 +64,11 @@ $record = new DmarcRecord(
     version: 'DMARC1',
     policy: 'reject',
     subdomain_policy: 'quarantine',
-    pct: 100,
     rua: 'mailto:dmarc@example.com',
     ruf: 'mailto:dmarc-forensic@example.com',
     adkim: 'relaxed',
     aspf: 'strict',
     reporting: ['dkim', 'spf'],
-    interval: 86400,
     np: 'reject',
     psd: 'y',
     t: 'n',
@@ -86,11 +82,10 @@ $record = new DmarcRecord(
 ```php
 $record = (string) DmarcRecord::create(
     policy: 'quarantine',
-    pct: 20,
     rua: 'mailto:dmarc@example.com',
 );
 
-// v=DMARC1; p=quarantine; pct=20; rua=mailto:dmarc@example.com
+// v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com
 ```
 
 ## Parsing an Existing Record
@@ -125,20 +120,18 @@ echo $record;
 | `version()` | `v` | `'DMARC1'` | `'DMARC1'` |
 | `policy()` | `p` | `'none'`, `'quarantine'`, `'reject'` | `'none'` |
 | `subdomainPolicy()` | `sp` | `'none'`, `'quarantine'`, `'reject'` | `null` |
-| `pct()` | `pct` | Integer | `null` |
 | `rua()` | `rua` | `'mailto:...'` | `null` |
 | `ruf()` | `ruf` | `'mailto:...'` | `null` |
 | `adkim()` | `adkim` | `'relaxed'`, `'strict'` | `null` |
 | `aspf()` | `aspf` | `'relaxed'`, `'strict'` | `null` |
 | `reporting()` | `fo` | `'all'`, `'any'`, `'dkim'`, `'spf'` | `[]` |
-| `interval()` | `ri` | Integer (seconds) | `null` |
 | `nonExistentSubdomainPolicy()` | `np` | `'none'`, `'quarantine'`, `'reject'` | `null` |
 | `publicSuffixDomainPolicy()` | `psd` | `'y'`, `'n'`, `'u'` | `null` |
 | `testingMode()` | `t` | `'y'`, `'n'` | `null` |
 
 Tags with a `null` value are omitted from the output string. Only `v` and `p` are always emitted.
 
-> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. `pct()` and `interval()` are deprecated and retained only for backwards compatibility; they are scheduled for removal in `4.0.0`.
+> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags, so this package no longer supports them (removed in `4.0.0`). Records that still contain those tags parse without error — the tags are simply ignored.
 
 ### Tag Details
 
@@ -153,12 +146,6 @@ Controls how the receiving mail server handles messages that fail DMARC checks.
 `subdomainPolicy()` (`sp`) overrides `policy()` for subdomains. If omitted, subdomains inherit the main policy.
 
 `nonExistentSubdomainPolicy()` (`np`) applies to non-existent subdomains (RFC 9091 / DMARCbis). Takes precedence over both `policy()` and `subdomainPolicy()` for those domains.
-
-#### `pct()`
-
-> **Deprecated (RFC 9989)** — DMARCbis removed the `pct` tag. Still functional; scheduled for removal in `4.0.0`.
-
-The percentage of messages the policy is applied to (1–100). Useful for gradual rollout. Omit to apply the policy to all messages.
 
 #### `rua()` / `ruf()`
 
@@ -210,12 +197,6 @@ Multiple values produce a colon-separated `fo` tag:
 ```
 
 Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidDmarcRecordException`.
-
-#### `interval()`
-
-> **Deprecated (RFC 9989)** — DMARCbis removed the `ri` tag. Still functional; scheduled for removal in `4.0.0`.
-
-How often (in seconds) receivers should send aggregate reports. The RFC default is 86400 (24 hours).
 
 #### `publicSuffixDomainPolicy()`
 

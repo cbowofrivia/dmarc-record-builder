@@ -20,8 +20,6 @@ class DmarcRecord
 
     public ?string $subdomain_policy = null;
 
-    public ?int $pct = null;
-
     public ?string $rua = null;
 
     public ?string $ruf = null;
@@ -31,8 +29,6 @@ class DmarcRecord
     public ?string $aspf = null;
 
     public array $reporting = [];
-
-    public ?int $interval = null;
 
     public ?string $np = null;
 
@@ -44,13 +40,11 @@ class DmarcRecord
         string $version = 'DMARC1',
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
-        ?int $pct = null,
         string|array|null $rua = null,
         string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
-        ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
         ?string $t = null
@@ -58,13 +52,11 @@ class DmarcRecord
         $this->version($version);
         $this->policy($policy);
         $this->subdomainPolicy($subdomain_policy);
-        $this->pct($pct);
         $this->rua($rua);
         $this->ruf($ruf);
         $this->adkim($adkim);
         $this->aspf($aspf);
         $this->reporting($reporting);
-        $this->interval($interval);
         $this->nonExistentSubdomainPolicy($np);
         $this->publicSuffixDomainPolicy($psd);
         $this->testingMode($t);
@@ -98,17 +90,6 @@ class DmarcRecord
         ]);
 
         $this->subdomain_policy = $policy;
-
-        return $this;
-    }
-
-    /**
-     * @deprecated RFC 9989 (DMARCbis) removed the "pct" tag. Retained for
-     *             backwards compatibility; scheduled for removal in 4.0.0.
-     */
-    public function pct(?int $percentage): static
-    {
-        $this->pct = $percentage;
 
         return $this;
     }
@@ -189,17 +170,6 @@ class DmarcRecord
         return $this;
     }
 
-    /**
-     * @deprecated RFC 9989 (DMARCbis) removed the "ri" tag. Retained for
-     *             backwards compatibility; scheduled for removal in 4.0.0.
-     */
-    public function interval(?int $interval): static
-    {
-        $this->interval = $interval;
-
-        return $this;
-    }
-
     public function nonExistentSubdomainPolicy(?string $policy): static
     {
         Assert::inArray($policy, [
@@ -237,13 +207,11 @@ class DmarcRecord
         string $version = 'DMARC1',
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
-        ?int $pct = null,
         string|array|null $rua = null,
         string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
-        ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
         ?string $t = null
@@ -252,13 +220,11 @@ class DmarcRecord
             version: $version,
             policy: $policy,
             subdomain_policy: $subdomain_policy,
-            pct: $pct,
             rua: $rua,
             ruf: $ruf,
             adkim: $adkim,
             aspf: $aspf,
             reporting: $reporting,
-            interval: $interval,
             np: $np,
             psd: $psd,
             t: $t
@@ -289,7 +255,6 @@ class DmarcRecord
                 'v' => $builder->version($value),
                 'p' => $builder->policy($value),
                 'sp' => $builder->subdomainPolicy($value),
-                'pct' => $builder->pct((int) $value),
                 'rua' => $builder->rua($value),
                 'ruf' => $builder->ruf($value),
                 'adkim' => $builder->adkim($builder->getHumanAdkimValue($value)),
@@ -298,7 +263,6 @@ class DmarcRecord
                     fn (string $v) => $builder->getHumanReportingOption(trim($v)),
                     explode(':', $value)
                 )),
-                'ri' => $builder->interval((int) $value),
                 'np' => $builder->nonExistentSubdomainPolicy($value),
                 'psd' => $builder->publicSuffixDomainPolicy($value),
                 't' => $builder->testingMode($value),
@@ -340,13 +304,11 @@ class DmarcRecord
         $record = $this->version ? "v=$this->version; " : '';
         $record .= $this->policy ? "p=$this->policy; " : '';
         $record .= $this->subdomain_policy ? "sp=$this->subdomain_policy; " : '';
-        $record .= $this->pct ? "pct=$this->pct; " : '';
         $record .= $this->rua ? "rua=$this->rua; " : '';
         $record .= $this->ruf ? "ruf=$this->ruf; " : '';
         $record .= $this->adkim ? "adkim={$this->getRealAdkimValue($this->adkim)}; " : '';
         $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
         $record .= $this->reporting ? 'fo='.implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)).'; ' : '';
-        $record .= $this->interval ? "ri=$this->interval; " : '';
         $record .= $this->np ? "np=$this->np; " : '';
         $record .= $this->psd ? "psd=$this->psd; " : '';
         $record .= $this->t ? "t=$this->t; " : '';
