@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CbowOfRivia\DmarcRecordBuilder;
 
-use CbowOfRivia\DmarcRecordBuilder\Support\Assert;
+use CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException;
 
 /**
  * Responsible for building an object representation of a DMARC
@@ -74,7 +74,7 @@ class DmarcRecord
 
     public function policy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
@@ -85,7 +85,7 @@ class DmarcRecord
 
     public function subdomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
@@ -118,7 +118,7 @@ class DmarcRecord
         ));
 
         foreach ($items as $item) {
-            Assert::startsWith(
+            InvalidDmarcRecordException::startsWith(
                 value: $item,
                 prefix: 'mailto:',
                 message: sprintf('%s mailto address should start with "mailto:"', $tag)
@@ -130,7 +130,7 @@ class DmarcRecord
 
     public function adkim(?string $value): static
     {
-        Assert::inArray($value, [
+        InvalidDmarcRecordException::inArray($value, [
             'relaxed', 'strict', null,
         ]);
 
@@ -141,7 +141,7 @@ class DmarcRecord
 
     public function aspf(?string $value): static
     {
-        Assert::inArray($value, [
+        InvalidDmarcRecordException::inArray($value, [
             'relaxed', 'strict', null,
         ]);
 
@@ -158,10 +158,10 @@ class DmarcRecord
 
         $values = array_values(array_unique($values));
 
-        Assert::allInArray($values, ['all', 'any', 'dkim', 'spf']);
+        InvalidDmarcRecordException::allInArray($values, ['all', 'any', 'dkim', 'spf']);
 
-        Assert::false(
-            value: in_array('all', $values) && in_array('any', $values),
+        InvalidDmarcRecordException::throwIf(
+            condition: in_array('all', $values) && in_array('any', $values),
             message: 'Reporting options "all" (0) and "any" (1) are mutually exclusive.'
         );
 
@@ -172,7 +172,7 @@ class DmarcRecord
 
     public function nonExistentSubdomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
@@ -183,7 +183,7 @@ class DmarcRecord
 
     public function publicSuffixDomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'y', 'n', 'u', null,
         ]);
 
@@ -194,7 +194,7 @@ class DmarcRecord
 
     public function testingMode(?string $testingMode): static
     {
-        Assert::inArray($testingMode, [
+        InvalidDmarcRecordException::inArray($testingMode, [
             'y', 'n', null,
         ]);
 
@@ -247,8 +247,8 @@ class DmarcRecord
             $properties[$property[0]] = $property[1];
         }
 
-        Assert::keyExists($properties, 'v', 'DMARC version is required');
-        Assert::keyExists($properties, 'p', 'DMARC policy is required');
+        InvalidDmarcRecordException::keyExists($properties, 'v', 'DMARC version is required');
+        InvalidDmarcRecordException::keyExists($properties, 'p', 'DMARC policy is required');
 
         foreach ($properties as $key => $value) {
             match ($key) {
