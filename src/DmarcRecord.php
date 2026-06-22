@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace CbowOfRivia\DmarcRecordBuilder;
 
-use Illuminate\Support\Collection;
-use Webmozart\Assert\Assert;
+use CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException;
 
 /**
  * Responsible for building an object representation of a DMARC
@@ -21,8 +20,6 @@ class DmarcRecord
 
     public ?string $subdomain_policy = null;
 
-    public ?int $pct = null;
-
     public ?string $rua = null;
 
     public ?string $ruf = null;
@@ -32,8 +29,6 @@ class DmarcRecord
     public ?string $aspf = null;
 
     public array $reporting = [];
-
-    public ?int $interval = null;
 
     public ?string $np = null;
 
@@ -45,13 +40,11 @@ class DmarcRecord
         string $version = 'DMARC1',
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
-        ?int $pct = null,
         string|array|null $rua = null,
         string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
-        ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
         ?string $t = null
@@ -59,13 +52,11 @@ class DmarcRecord
         $this->version($version);
         $this->policy($policy);
         $this->subdomainPolicy($subdomain_policy);
-        $this->pct($pct);
         $this->rua($rua);
         $this->ruf($ruf);
         $this->adkim($adkim);
         $this->aspf($aspf);
         $this->reporting($reporting);
-        $this->interval($interval);
         $this->nonExistentSubdomainPolicy($np);
         $this->publicSuffixDomainPolicy($psd);
         $this->testingMode($t);
@@ -83,7 +74,7 @@ class DmarcRecord
 
     public function policy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
@@ -94,22 +85,11 @@ class DmarcRecord
 
     public function subdomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
         $this->subdomain_policy = $policy;
-
-        return $this;
-    }
-
-    /**
-     * @deprecated RFC 9989 (DMARCbis) removed the "pct" tag. Retained for
-     *             backwards compatibility; scheduled for removal in 4.0.0.
-     */
-    public function pct(?int $percentage): static
-    {
-        $this->pct = $percentage;
 
         return $this;
     }
@@ -138,7 +118,7 @@ class DmarcRecord
         ));
 
         foreach ($items as $item) {
-            Assert::startsWith(
+            InvalidDmarcRecordException::startsWith(
                 value: $item,
                 prefix: 'mailto:',
                 message: sprintf('%s mailto address should start with "mailto:"', $tag)
@@ -150,7 +130,7 @@ class DmarcRecord
 
     public function adkim(?string $value): static
     {
-        Assert::inArray($value, [
+        InvalidDmarcRecordException::inArray($value, [
             'relaxed', 'strict', null,
         ]);
 
@@ -161,7 +141,7 @@ class DmarcRecord
 
     public function aspf(?string $value): static
     {
-        Assert::inArray($value, [
+        InvalidDmarcRecordException::inArray($value, [
             'relaxed', 'strict', null,
         ]);
 
@@ -178,10 +158,10 @@ class DmarcRecord
 
         $values = array_values(array_unique($values));
 
-        Assert::allInArray($values, ['all', 'any', 'dkim', 'spf']);
+        InvalidDmarcRecordException::allInArray($values, ['all', 'any', 'dkim', 'spf']);
 
-        Assert::false(
-            value: in_array('all', $values) && in_array('any', $values),
+        InvalidDmarcRecordException::throwIf(
+            condition: in_array('all', $values) && in_array('any', $values),
             message: 'Reporting options "all" (0) and "any" (1) are mutually exclusive.'
         );
 
@@ -190,20 +170,9 @@ class DmarcRecord
         return $this;
     }
 
-    /**
-     * @deprecated RFC 9989 (DMARCbis) removed the "ri" tag. Retained for
-     *             backwards compatibility; scheduled for removal in 4.0.0.
-     */
-    public function interval(?int $interval): static
-    {
-        $this->interval = $interval;
-
-        return $this;
-    }
-
     public function nonExistentSubdomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'none', 'quarantine', 'reject', null,
         ]);
 
@@ -214,7 +183,7 @@ class DmarcRecord
 
     public function publicSuffixDomainPolicy(?string $policy): static
     {
-        Assert::inArray($policy, [
+        InvalidDmarcRecordException::inArray($policy, [
             'y', 'n', 'u', null,
         ]);
 
@@ -225,7 +194,7 @@ class DmarcRecord
 
     public function testingMode(?string $testingMode): static
     {
-        Assert::inArray($testingMode, [
+        InvalidDmarcRecordException::inArray($testingMode, [
             'y', 'n', null,
         ]);
 
@@ -238,13 +207,11 @@ class DmarcRecord
         string $version = 'DMARC1',
         ?string $policy = 'none',
         ?string $subdomain_policy = null,
-        ?int $pct = null,
         string|array|null $rua = null,
         string|array|null $ruf = null,
         ?string $adkim = null,
         ?string $aspf = null,
         string|array $reporting = [],
-        ?int $interval = null,
         ?string $np = null,
         ?string $psd = null,
         ?string $t = null
@@ -253,13 +220,11 @@ class DmarcRecord
             version: $version,
             policy: $policy,
             subdomain_policy: $subdomain_policy,
-            pct: $pct,
             rua: $rua,
             ruf: $ruf,
             adkim: $adkim,
             aspf: $aspf,
             reporting: $reporting,
-            interval: $interval,
             np: $np,
             psd: $psd,
             t: $t
@@ -270,25 +235,26 @@ class DmarcRecord
     {
         $builder = new static;
 
-        collect(explode(';', $record))
-            ->mapWithKeys(function (string $part) {
-                $property = explode('=', trim($part));
+        $properties = [];
 
-                if (count($property) !== 2) {
-                    return [];
-                }
+        foreach (explode(';', $record) as $part) {
+            $property = explode('=', trim($part));
 
-                return [$property[0] => $property[1]];
-            })
-            ->tap(function (Collection $properties): void {
-                Assert::keyExists($properties->toArray(), 'v', 'DMARC version is required');
-                Assert::keyExists($properties->toArray(), 'p', 'DMARC policy is required');
-            })
-            ->each(fn (string $value, $key) => match ($key) {
+            if (count($property) !== 2) {
+                continue;
+            }
+
+            $properties[$property[0]] = $property[1];
+        }
+
+        InvalidDmarcRecordException::keyExists($properties, 'v', 'DMARC version is required');
+        InvalidDmarcRecordException::keyExists($properties, 'p', 'DMARC policy is required');
+
+        foreach ($properties as $key => $value) {
+            match ($key) {
                 'v' => $builder->version($value),
                 'p' => $builder->policy($value),
                 'sp' => $builder->subdomainPolicy($value),
-                'pct' => $builder->pct((int) $value),
                 'rua' => $builder->rua($value),
                 'ruf' => $builder->ruf($value),
                 'adkim' => $builder->adkim($builder->getHumanAdkimValue($value)),
@@ -297,12 +263,12 @@ class DmarcRecord
                     fn (string $v) => $builder->getHumanReportingOption(trim($v)),
                     explode(':', $value)
                 )),
-                'ri' => $builder->interval((int) $value),
                 'np' => $builder->nonExistentSubdomainPolicy($value),
                 'psd' => $builder->publicSuffixDomainPolicy($value),
                 't' => $builder->testingMode($value),
                 default => null,
-            });
+            };
+        }
 
         return $builder;
     }
@@ -338,13 +304,11 @@ class DmarcRecord
         $record = $this->version ? "v=$this->version; " : '';
         $record .= $this->policy ? "p=$this->policy; " : '';
         $record .= $this->subdomain_policy ? "sp=$this->subdomain_policy; " : '';
-        $record .= $this->pct ? "pct=$this->pct; " : '';
         $record .= $this->rua ? "rua=$this->rua; " : '';
         $record .= $this->ruf ? "ruf=$this->ruf; " : '';
         $record .= $this->adkim ? "adkim={$this->getRealAdkimValue($this->adkim)}; " : '';
         $record .= $this->aspf ? "aspf={$this->getRealAspfValue($this->aspf)}; " : '';
         $record .= $this->reporting ? 'fo='.implode(':', array_map(fn (string $v) => $this->getRealReportingOption($v), $this->reporting)).'; ' : '';
-        $record .= $this->interval ? "ri=$this->interval; " : '';
         $record .= $this->np ? "np=$this->np; " : '';
         $record .= $this->psd ? "psd=$this->psd; " : '';
         $record .= $this->t ? "t=$this->t; " : '';

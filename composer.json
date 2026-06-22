@@ -16,9 +16,7 @@
         }
     ],
     "require": {
-        "php": "^8.2",
-        "illuminate/collections": "^12.0",
-        "webmozart/assert": "^2.1"
+        "php": "^8.3"
     },
     "require-dev": {
         "laravel/pint": "^1.15",

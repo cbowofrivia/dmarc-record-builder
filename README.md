@@ -9,7 +9,9 @@ A PHP package for building and parsing DMARC DNS records with a fluent, human-fr
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.3 or higher
+
+This package has no runtime dependencies.
 
 ## Installation
 
@@ -40,19 +42,17 @@ $record = new DmarcRecord();
 
 $record->policy('reject')
     ->subdomainPolicy('quarantine')
-    ->pct(100)
     ->rua('mailto:dmarc@example.com')
     ->ruf('mailto:dmarc-forensic@example.com')
     ->adkim('relaxed')
     ->aspf('strict')
     ->reporting(['dkim', 'spf'])
-    ->interval(86400)
     ->nonExistentSubdomainPolicy('reject')
     ->publicSuffixDomainPolicy('y')
     ->testingMode('n');
 
 echo $record;
-// v=DMARC1; p=reject; sp=quarantine; pct=100; rua=mailto:dmarc@example.com; ruf=mailto:dmarc-forensic@example.com; adkim=r; aspf=s; fo=d:s; ri=86400; np=reject; psd=y; t=n
+// v=DMARC1; p=reject; sp=quarantine; rua=mailto:dmarc@example.com; ruf=mailto:dmarc-forensic@example.com; adkim=r; aspf=s; fo=d:s; np=reject; psd=y; t=n
 ```
 
 ### Constructor
@@ -64,13 +64,11 @@ $record = new DmarcRecord(
     version: 'DMARC1',
     policy: 'reject',
     subdomain_policy: 'quarantine',
-    pct: 100,
     rua: 'mailto:dmarc@example.com',
     ruf: 'mailto:dmarc-forensic@example.com',
     adkim: 'relaxed',
     aspf: 'strict',
     reporting: ['dkim', 'spf'],
-    interval: 86400,
     np: 'reject',
     psd: 'y',
     t: 'n',
@@ -84,11 +82,10 @@ $record = new DmarcRecord(
 ```php
 $record = (string) DmarcRecord::create(
     policy: 'quarantine',
-    pct: 20,
     rua: 'mailto:dmarc@example.com',
 );
 
-// v=DMARC1; p=quarantine; pct=20; rua=mailto:dmarc@example.com
+// v=DMARC1; p=quarantine; rua=mailto:dmarc@example.com
 ```
 
 ## Parsing an Existing Record
@@ -114,7 +111,7 @@ echo $record;
 // v=DMARC1; p=reject; rua=mailto:dmarc@example.com
 ```
 
-`parse()` requires both `v` and `p` tags to be present and will throw an `InvalidArgumentException` if either is missing. Unknown tags are silently ignored.
+`parse()` requires both `v` and `p` tags to be present and will throw an `InvalidDmarcRecordException` if either is missing. Unknown tags are silently ignored.
 
 ## Tag Reference
 
@@ -123,20 +120,18 @@ echo $record;
 | `version()` | `v` | `'DMARC1'` | `'DMARC1'` |
 | `policy()` | `p` | `'none'`, `'quarantine'`, `'reject'` | `'none'` |
 | `subdomainPolicy()` | `sp` | `'none'`, `'quarantine'`, `'reject'` | `null` |
-| `pct()` | `pct` | Integer | `null` |
 | `rua()` | `rua` | `'mailto:...'` | `null` |
 | `ruf()` | `ruf` | `'mailto:...'` | `null` |
 | `adkim()` | `adkim` | `'relaxed'`, `'strict'` | `null` |
 | `aspf()` | `aspf` | `'relaxed'`, `'strict'` | `null` |
 | `reporting()` | `fo` | `'all'`, `'any'`, `'dkim'`, `'spf'` | `[]` |
-| `interval()` | `ri` | Integer (seconds) | `null` |
 | `nonExistentSubdomainPolicy()` | `np` | `'none'`, `'quarantine'`, `'reject'` | `null` |
 | `publicSuffixDomainPolicy()` | `psd` | `'y'`, `'n'`, `'u'` | `null` |
 | `testingMode()` | `t` | `'y'`, `'n'` | `null` |
 
 Tags with a `null` value are omitted from the output string. Only `v` and `p` are always emitted.
 
-> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. `pct()` and `interval()` are deprecated and retained only for backwards compatibility; they are scheduled for removal in `4.0.0`.
+> **Note:** RFC 9989 (DMARCbis) removed the `pct` and `ri` tags, so this package no longer supports them (removed in `4.0.0`). Records that still contain those tags parse without error — the tags are simply ignored.
 
 ### Tag Details
 
@@ -151,12 +146,6 @@ Controls how the receiving mail server handles messages that fail DMARC checks.
 `subdomainPolicy()` (`sp`) overrides `policy()` for subdomains. If omitted, subdomains inherit the main policy.
 
 `nonExistentSubdomainPolicy()` (`np`) applies to non-existent subdomains (RFC 9091 / DMARCbis). Takes precedence over both `policy()` and `subdomainPolicy()` for those domains.
-
-#### `pct()`
-
-> **Deprecated (RFC 9989)** — DMARCbis removed the `pct` tag. Still functional; scheduled for removal in `4.0.0`.
-
-The percentage of messages the policy is applied to (1–100). Useful for gradual rollout. Omit to apply the policy to all messages.
 
 #### `rua()` / `ruf()`
 
@@ -207,13 +196,7 @@ Multiple values produce a colon-separated `fo` tag:
 // fo=1
 ```
 
-Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidArgumentException`.
-
-#### `interval()`
-
-> **Deprecated (RFC 9989)** — DMARCbis removed the `ri` tag. Still functional; scheduled for removal in `4.0.0`.
-
-How often (in seconds) receivers should send aggregate reports. The RFC default is 86400 (24 hours).
+Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidDmarcRecordException`.
 
 #### `publicSuffixDomainPolicy()`
 
@@ -229,16 +212,16 @@ When set to `'y'`, signals that DMARC is in testing mode. Receivers should not a
 
 ## Validation
 
-The package validates inputs on each setter call. Passing an invalid value throws an `InvalidArgumentException` from `webmozart/assert`.
+The package validates inputs on each setter call. Passing an invalid value throws a `CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException`. It extends the native `\InvalidArgumentException`, so existing `catch (\InvalidArgumentException)` handlers continue to work.
 
 ```php
-// Throws: Expected one of: "none", "quarantine", "reject", NULL. Got: "monitor"
+// Throws: Expected one of: "none", "quarantine", "reject", null. Got: "monitor"
 $record->policy('monitor');
 
 // Throws: rua mailto address should start with "mailto:"
 $record->rua('dmarc@example.com');
 
-// Throws: Expected one of: "relaxed", "strict", NULL. Got: "loose"
+// Throws: Expected one of: "relaxed", "strict", null. Got: "loose"
 $record->adkim('loose');
 
 // Throws: Reporting options "all" (0) and "any" (1) are mutually exclusive.
