@@ -9,7 +9,9 @@ A PHP package for building and parsing DMARC DNS records with a fluent, human-fr
 
 ## Requirements
 
-- PHP 8.2 or higher
+- PHP 8.3 or higher
+
+This package has no runtime dependencies.
 
 ## Installation
 
@@ -114,7 +116,7 @@ echo $record;
 // v=DMARC1; p=reject; rua=mailto:dmarc@example.com
 ```
 
-`parse()` requires both `v` and `p` tags to be present and will throw an `InvalidArgumentException` if either is missing. Unknown tags are silently ignored.
+`parse()` requires both `v` and `p` tags to be present and will throw an `InvalidDmarcRecordException` if either is missing. Unknown tags are silently ignored.
 
 ## Tag Reference
 
@@ -207,7 +209,7 @@ Multiple values produce a colon-separated `fo` tag:
 // fo=1
 ```
 
-Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidArgumentException`.
+Duplicate values are silently deduplicated. `'all'` and `'any'` are mutually exclusive — passing both throws an `InvalidDmarcRecordException`.
 
 #### `interval()`
 
@@ -229,16 +231,16 @@ When set to `'y'`, signals that DMARC is in testing mode. Receivers should not a
 
 ## Validation
 
-The package validates inputs on each setter call. Passing an invalid value throws an `InvalidArgumentException` from `webmozart/assert`.
+The package validates inputs on each setter call. Passing an invalid value throws a `CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException`. It extends the native `\InvalidArgumentException`, so existing `catch (\InvalidArgumentException)` handlers continue to work.
 
 ```php
-// Throws: Expected one of: "none", "quarantine", "reject", NULL. Got: "monitor"
+// Throws: Expected one of: "none", "quarantine", "reject", null. Got: "monitor"
 $record->policy('monitor');
 
 // Throws: rua mailto address should start with "mailto:"
 $record->rua('dmarc@example.com');
 
-// Throws: Expected one of: "relaxed", "strict", NULL. Got: "loose"
+// Throws: Expected one of: "relaxed", "strict", null. Got: "loose"
 $record->adkim('loose');
 
 // Throws: Reporting options "all" (0) and "any" (1) are mutually exclusive.

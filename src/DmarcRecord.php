@@ -4,8 +4,7 @@ declare(strict_types=1);
 
 namespace CbowOfRivia\DmarcRecordBuilder;
 
-use Illuminate\Support\Collection;
-use Webmozart\Assert\Assert;
+use CbowOfRivia\DmarcRecordBuilder\Support\Assert;
 
 /**
  * Responsible for building an object representation of a DMARC
@@ -270,21 +269,23 @@ class DmarcRecord
     {
         $builder = new static;
 
-        collect(explode(';', $record))
-            ->mapWithKeys(function (string $part) {
-                $property = explode('=', trim($part));
+        $properties = [];
 
-                if (count($property) !== 2) {
-                    return [];
-                }
+        foreach (explode(';', $record) as $part) {
+            $property = explode('=', trim($part));
 
-                return [$property[0] => $property[1]];
-            })
-            ->tap(function (Collection $properties): void {
-                Assert::keyExists($properties->toArray(), 'v', 'DMARC version is required');
-                Assert::keyExists($properties->toArray(), 'p', 'DMARC policy is required');
-            })
-            ->each(fn (string $value, $key) => match ($key) {
+            if (count($property) !== 2) {
+                continue;
+            }
+
+            $properties[$property[0]] = $property[1];
+        }
+
+        Assert::keyExists($properties, 'v', 'DMARC version is required');
+        Assert::keyExists($properties, 'p', 'DMARC policy is required');
+
+        foreach ($properties as $key => $value) {
+            match ($key) {
                 'v' => $builder->version($value),
                 'p' => $builder->policy($value),
                 'sp' => $builder->subdomainPolicy($value),
@@ -302,7 +303,8 @@ class DmarcRecord
                 'psd' => $builder->publicSuffixDomainPolicy($value),
                 't' => $builder->testingMode($value),
                 default => null,
-            });
+            };
+        }
 
         return $builder;
     }

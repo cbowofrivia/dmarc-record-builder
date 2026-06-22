@@ -1,7 +1,7 @@
 <?php
 
 use CbowOfRivia\DmarcRecordBuilder\DmarcRecord;
-use Webmozart\Assert\InvalidArgumentException;
+use CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException;
 
 beforeEach(function (): void {
     $this->record = new DmarcRecord;
@@ -176,17 +176,17 @@ describe('fluent methods', function (): void {
 describe('validation', function (): void {
     it('rejects invalid policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(policy: $invalidPolicy))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects invalid subdomain policy values', function (string $invalidPolicy): void {
         expect(fn () => DmarcRecord::create(subdomain_policy: $invalidPolicy))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects malformed rua addresses', function (string $invalidRua): void {
         expect(fn () => DmarcRecord::create(rua: $invalidRua))
-            ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'rua mailto address should start with "mailto:"');
     })->with([
         'no-mailto@mailto.com',
         'test@test.com',
@@ -195,7 +195,7 @@ describe('validation', function (): void {
 
     it('rejects malformed ruf addresses', function (string $invalidRuf): void {
         expect(fn () => DmarcRecord::create(ruf: $invalidRuf))
-            ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'ruf mailto address should start with "mailto:"');
     })->with([
         'test@test.com',
         'invalid-format',
@@ -204,22 +204,22 @@ describe('validation', function (): void {
 
     it('rejects invalid adkim values', function (string $invalidAdkim): void {
         expect(fn () => DmarcRecord::create(adkim: $invalidAdkim))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
     it('rejects invalid aspf values', function (string $invalidAspf): void {
         expect(fn () => DmarcRecord::create(aspf: $invalidAspf))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['naughty', 'invalid', 'bad']);
 
     it('rejects invalid reporting values', function (string|array $invalidReporting): void {
         expect(fn () => DmarcRecord::create(reporting: $invalidReporting))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong', ['invalid'], ['bad'], ['wrong']]);
 
     it('rejects mutually exclusive reporting values all and any', function (): void {
         expect(fn () => DmarcRecord::create(reporting: ['all', 'any']))
-            ->toThrow(InvalidArgumentException::class, 'mutually exclusive');
+            ->toThrow(InvalidDmarcRecordException::class, 'mutually exclusive');
     });
 
     it('deduplicates reporting values silently', function (): void {
@@ -230,27 +230,27 @@ describe('validation', function (): void {
 
     it('rejects invalid np values', function (string $invalidNp): void {
         expect(fn () => DmarcRecord::create(np: $invalidNp))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['invalid', 'bad', 'wrong']);
 
     it('rejects invalid psd values', function (string $invalidPsd): void {
         expect(fn () => DmarcRecord::create(psd: $invalidPsd))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['z', 'invalid', 'bad']);
 
     it('rejects invalid t values', function (string $invalidT): void {
         expect(fn () => DmarcRecord::create(t: $invalidT))
-            ->toThrow(InvalidArgumentException::class);
+            ->toThrow(InvalidDmarcRecordException::class);
     })->with(['x', 'invalid', 'bad']);
 
     it('rejects an array containing a non-mailto rua address', function (): void {
         expect(fn () => DmarcRecord::create(rua: ['mailto:a@example.com', 'invalid@example.com']))
-            ->toThrow(InvalidArgumentException::class, 'rua mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'rua mailto address should start with "mailto:"');
     });
 
     it('rejects an array containing a non-mailto ruf address', function (): void {
         expect(fn () => DmarcRecord::create(ruf: ['mailto:a@example.com', 'invalid@example.com']))
-            ->toThrow(InvalidArgumentException::class, 'ruf mailto address should start with "mailto:"');
+            ->toThrow(InvalidDmarcRecordException::class, 'ruf mailto address should start with "mailto:"');
     });
 });
 
@@ -497,7 +497,7 @@ describe('parsing', function (): void {
 
     it('fails with missing required fields', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
-            ->toThrow(InvalidArgumentException::class, $expectedException);
+            ->toThrow(InvalidDmarcRecordException::class, $expectedException);
     })->with([
         ['p=none;', 'DMARC version is required'],
         ['v=DMARC1;', 'DMARC policy is required'],
@@ -507,7 +507,7 @@ describe('parsing', function (): void {
 
     it('fails with invalid field values', function (string $record, string $expectedException): void {
         expect(fn () => DmarcRecord::parse($record))
-            ->toThrow(InvalidArgumentException::class, $expectedException);
+            ->toThrow(InvalidDmarcRecordException::class, $expectedException);
     })->with([
         ['v=DMARC1; p=invalid;', 'Expected one of: "none", "quarantine", "reject", null. Got: "invalid"'],
         ['v=DMARC1; p=none; sp=invalid;', 'Expected one of: "none", "quarantine", "reject", null. Got: "invalid"'],
