@@ -2,6 +2,40 @@
 
 All notable changes to `dmarc-record-builder` will be documented in this file.
 
+## 4.0.0 - 2026-06-22
+
+### Breaking Changes
+
+- **Removed the `pct()` and `interval()` methods** — RFC 9989 (DMARCbis) removed the `pct` and `ri` tags. The methods, their constructor/`create()` arguments, and the `$pct` / `$interval` properties are gone. `parse()` now treats `pct` and `ri` as unknown tags: existing records still parse without error and those tags are dropped on re-cast.
+- **Minimum PHP raised to 8.3** (was 8.2, which reaches end-of-life in December 2026).
+- **Validation exception type changed** — validation now throws `CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException` instead of `Webmozart\Assert\InvalidArgumentException`. The new exception extends `\InvalidArgumentException`, so `catch (\InvalidArgumentException)` continues to work; exception messages are unchanged.
+
+### Changed
+
+- **Removed all runtime dependencies** — dropped `webmozart/assert` and `illuminate/collections`. The package no longer pins consumers to a Laravel major or installs transitive packages. Validation is handled by internal static guards on `InvalidDmarcRecordException`, and `parse()` uses plain PHP arrays.
+
+### Migration Guide
+
+```php
+// Removed — delete these calls
+$record->pct(100);
+$record->interval(86400);
+DmarcRecord::create(pct: 100, interval: 86400);
+$record->pct;       // property removed
+$record->interval;  // property removed
+
+// Catching validation errors — use the native parent or the new exception
+use CbowOfRivia\DmarcRecordBuilder\Exceptions\InvalidDmarcRecordException;
+
+try {
+    $record->policy('invalid');
+} catch (InvalidDmarcRecordException $e) {  // or \InvalidArgumentException
+    // ...
+}
+```
+
+- Require PHP 8.3 or higher.
+
 ## 3.1.0 - 2026-06-18
 
 ### Added
